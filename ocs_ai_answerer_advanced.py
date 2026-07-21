@@ -1028,7 +1028,7 @@ def bootstrap_builtin_presets():
         'multiple': [PRESET_DEEPSEEK_V4_PRO, PRESET_DEEPSEEK_V4_FLASH],
         'judgement': [PRESET_DEEPSEEK_V4_PRO, PRESET_DEEPSEEK_V4_FLASH],
         'completion': [PRESET_DEEPSEEK_V4_PRO, PRESET_DEEPSEEK_V4_FLASH],
-        'image': [PRESET_GLM_4V_FLASH, PRESET_DOUBAO]
+        'image': [PRESET_GLM_4V_FLASH, PRESET_DOUBAO_MINI]
     }
 
     for question_type, default_ids in default_mappings.items():

@@ -77,12 +77,13 @@
   "enabled": true
 }</code></pre>
 
-<h3>2.2 当前 6 个模型 ID（记住这些名字）</h3>
+<h3>2.2 当前 7 个模型 ID（记住这些名字）</h3>
 
 <table>
   <tr><th>模型 ID</th><th>显示名</th><th>用途</th></tr>
   <tr><td><code>preset_deepseek_v4_flash</code></td><td>DeepSeek V4 Flash</td><td>文字题（快、便宜）</td></tr>
   <tr><td><code>preset_deepseek_v4_pro</code></td><td>DeepSeek V4 Pro</td><td>文字题（准、慢）</td></tr>
+  <tr><td><code>preset_glm_4v_flash</code></td><td>GLM-4.6V-Flash</td><td>图片题（免费视觉，首选）</td></tr>
   <tr><td><code>preset_doubao_mini</code></td><td>豆包 Mini 2.0</td><td>图片题（最便宜）</td></tr>
   <tr><td><code>preset_doubao_turbo</code></td><td>豆包 Turbo 2.1</td><td>图片题（快）</td></tr>
   <tr><td><code>preset_doubao_pro</code></td><td>豆包 Pro 2.0</td><td>图片题（准）</td></tr>
@@ -96,7 +97,7 @@
   "multiple":   { "models": ["preset_deepseek_v4_pro", "preset_deepseek_v4_flash"] },
   "judgement":  { "models": ["preset_deepseek_v4_flash", "preset_deepseek_v4_pro"] },
   "completion": { "models": ["preset_deepseek_v4_flash", "preset_deepseek_v4_pro"] },
-  "image":      { "models": ["preset_doubao_mini", "preset_doubao_turbo", "preset_doubao_pro", "preset_doubao_2_1_pro"] }
+  "image":      { "models": ["preset_glm_4v_flash", "preset_doubao_mini", "preset_doubao_turbo", "preset_doubao_pro", "preset_doubao_2_1_pro"] }
 }</code></pre>
 
 <ul>
@@ -255,7 +256,7 @@
 
 <ol>
   <li>浏览器打开 <code>http://127.0.0.1:5000/api/health</code></li>
-  <li>看到 <code>"enabled_model_count": 6</code> 说明服务正常</li>
+  <li>看到 <code>"enabled_model_count": 7</code> 说明服务正常</li>
   <li>用 OCS 触发一道题，看 CSV 日志（<code>ocs_answers_log.csv</code>）的"模型"列</li>
 </ol>
 
