@@ -5,7 +5,7 @@
     "method": "post",
     "type": "fetch",
     "contentType": "json",
-    "homepage": "https://github.com/lkd6666/ocs-ai-answerer",
+    "homepage": "https://github.com/zhuzhangxue/ocs-ai-answerer",
     "headers": {
       "Content-Type": "application/json"
     },

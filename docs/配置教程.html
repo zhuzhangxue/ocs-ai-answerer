@@ -31,7 +31,7 @@
 </p>
 
 <p>
-所有配置都存在 <code>D:\tools\ocs-ai-answerer\custom_models.json</code> 这一个文件里，<strong>改完必须重启服务</strong>才生效。
+所有配置都存在 <code>OCS-AI-Answerer-一键包\custom_models.json</code> 这一个文件里（即你解压后的项目根目录），<strong>改完必须重启服务</strong>才生效。
 </p>
 
 <hr>
@@ -40,7 +40,7 @@
 
 <ol>
   <li>用<strong>记事本 / VSCode / Notepad++</strong> 打开：
-    <pre><code>D:\tools\ocs-ai-answerer\custom_models.json</code></pre>
+    <pre><code>OCS-AI-Answerer-一键包\custom_models.json</code></pre>
   </li>
   <li>推荐用 <strong>VSCode</strong>，有 JSON 高亮和格式校验，更安全。</li>
   <li>文件 <strong>不要用 Word/WPS 打开</strong>，会破坏编码。</li>
@@ -244,9 +244,9 @@
 
 <ol>
   <li><strong>关掉旧服务窗口</strong>（点 X 关闭那个黑色 cmd 窗口）</li>
-  <li><strong>打开新窗口</strong>，执行：
-    <pre><code>cd /d D:\tools\ocs-ai-answerer
-D:\tools\anaconda3\python.exe ocs_ai_answerer_advanced.py</code></pre>
+  <li><strong>打开新窗口</strong>，执行（把路径换成你的项目实际位置）：
+    <pre><code>cd /d C:\你的路径\OCS-AI-Answerer-一键包
+.venv\Scripts\python.exe ocs_ai_answerer_advanced.py</code></pre>
   </li>
   <li>看到 <code>✅ 服务启动成功！</code> 就 OK 了</li>
 </ol>

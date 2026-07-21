@@ -2,6 +2,10 @@
 chcp 65001 >nul
 title OCS AI 答题助手 - 一键启动
 
+REM ==================== 关键: 切到项目根目录 ====================
+REM 不管 bat 在 scripts/ 还是根目录, 都先 cd 到项目根
+cd /d "%~dp0\.."
+
 echo.
 echo ╔════════════════════════════════════════════════════════════╗
 echo ║                                                            ║
@@ -206,7 +210,7 @@ if "%SHORTCUT_EXISTS%"=="1" (
     (
         echo Set WshShell = CreateObject^("WScript.Shell"^)
         echo Set shortcut = WshShell.CreateShortcut^("%SHORTCUT_PATH%"^)
-        echo shortcut.TargetPath = "%CD%\一键启动.bat"
+        echo shortcut.TargetPath = "%CD%\scripts\一键启动.bat"
         echo shortcut.WorkingDirectory = "%CD%"
         echo shortcut.WindowStyle = 7
         echo shortcut.Description = "OCS AI 智能答题 - 一键启动"
@@ -230,7 +234,7 @@ echo ━━━━━━━━━━━━━━━━━━━━━━━━━
 echo 🌐 打开浏览器到部署指南...
 echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 echo.
-start INSTALL.html
+start docs\INSTALL.html
 
 echo.
 echo ✅ 全部就绪!

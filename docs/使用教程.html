@@ -237,7 +237,7 @@
       <div class="step">
         <span class="step-num">1</span>
         <h3>下载压缩包 <span class="check">必需</span></h3>
-        <p>从你拿到的渠道下载 <code>OCS-AI-Answerer-一键包.zip</code> (约 151 KB)。</p>
+        <p>从你拿到的渠道下载 <code>OCS-AI-Answerer-一键包-v1.0.zip</code> (约 175 KB)。</p>
         <div class="info">💡 文件很小，发微信/QQ/U盘/网盘都很方便</div>
       </div>
 
@@ -253,20 +253,24 @@
       <div class="step">
         <span class="step-num">3</span>
         <h3>查看文件夹内容</h3>
-        <p>打开解压后的文件夹，应该看到 11 个文件：</p>
+        <p>打开解压后的文件夹，应该看到这样的目录结构：</p>
 <pre>
 OCS-AI-Answerer-一键包/
-├── 一键启动.bat          ⭐ 核心文件,稍后双击它
-├── keys.txt              ⭐ 填 API Key 用
-├── INSTALL.html          📖 浏览器部署指南
-├── 配置教程.html         📖 改模型配置教程
-├── 添加新模型教程.html   📖 接入新模型教程
-├── ocs_ai_answerer_advanced.py  主程序
-├── custom_models.json    模型配置
-├── ocs_config.json       OCS 题库配置
-├── env.template          环境变量模板
-├── requirements.txt      Python 依赖
-└── config_panel.html     配置面板(备用)
+├── keys.txt                          ⭐ 填 API Key 用
+├── ocs_ai_answerer_advanced.py       主程序
+├── custom_models.json                模型配置
+├── ocs_config.json                   OCS 题库配置
+├── requirements.txt                  Python 依赖
+├── config_panel.html                 配置面板(备用)
+├── env.template                      环境变量模板
+├── README.md                         项目说明
+├── docs/
+│   ├── INSTALL.html                  📖 浏览器部署指南
+│   ├── 使用教程.html                 📖 本文件
+│   ├── 配置教程.html                 📖 改模型配置教程
+│   └── 添加新模型教程.html           📖 接入新模型教程
+└── scripts/
+    └── 一键启动.bat                  ⭐ 核心文件,稍后双击它
 </pre>
         <div class="success">✅ 文件齐全,可以进入第二阶段</div>
       </div>
@@ -380,8 +384,8 @@ DOUBAO_API_KEY=ark-你的真实key
 
       <div class="step">
         <span class="step-num">2</span>
-        <h3>双击「一键启动.bat」 <span class="check">启动</span></h3>
-        <p>在文件夹里找到 <code>一键启动.bat</code>,双击运行。</p>
+        <h3>双击「scripts/一键启动.bat」 <span class="check">启动</span></h3>
+        <p>进入 <code>scripts</code> 文件夹,双击 <code>一键启动.bat</code>。</p>
         <p>会弹出一个黑色 cmd 窗口,显示 6 步进度。</p>
         <div class="note">💡 <strong>不要关闭这个黑窗口</strong>(除非服务启动完成)</div>
       </div>
@@ -444,16 +448,16 @@ DOUBAO_API_KEY=ark-你的真实key
 
       <div class="step">
         <span class="step-num">1</span>
-        <h3>打开 INSTALL.html 部署指南</h3>
-        <p>服务启动后,bat 会自动用浏览器打开 <code>INSTALL.html</code>。</p>
-        <p>如果没自动打开,双击文件夹里的 <code>INSTALL.html</code>。</p>
+        <h3>打开 docs/INSTALL.html 部署指南</h3>
+        <p>服务启动后,bat 会自动用浏览器打开 <code>docs/INSTALL.html</code>。</p>
+        <p>如果没自动打开,双击 <code>docs/INSTALL.html</code>。</p>
         <p>这是图文并茂的 4 步指南,按它操作即可。</p>
       </div>
 
       <div class="step">
         <span class="step-num">2</span>
         <h3>装 Tampermonkey 扩展 <span class="check">必需</span></h3>
-        <p>在 <code>INSTALL.html</code> 里有 Chrome 应用商店直达链接。</p>
+        <p>在 <code>docs/INSTALL.html</code> 里有 Chrome 应用商店直达链接。</p>
         <a class="btn green" href="https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank">Chrome 用户点此 →</a>
         <a class="btn green" href="https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaaobikljhlgknadcnnailhcd" target="_blank">Edge 用户点此 →</a>
         <p>在商店页面点「<strong>添加至 Chrome/Edge</strong>」→「添加扩展」</p>
@@ -622,7 +626,7 @@ DOUBAO_API_KEY=ark-你的真实key
 
       <div class="faq-item">
         <div class="faq-q">Q8: 怎么添加新模型(如 Kimi)？</div>
-        <div class="faq-a">打开 <code>添加新模型教程.html</code> 里有完整步骤。或者直接告诉我「加 Kimi, key 是 xxx」,我帮你加。</div>
+        <div class="faq-a">打开 <code>docs/添加新模型教程.html</code> 里有完整步骤。或者直接告诉我「加 Kimi, key 是 xxx」,我帮你加。</div>
       </div>
 
       <div class="faq-item">
@@ -632,7 +636,7 @@ DOUBAO_API_KEY=ark-你的真实key
 
       <div class="faq-item">
         <div class="faq-q">Q10: 想换个模型(如 Flash 改 Pro)？</div>
-        <div class="faq-a">打开 <code>配置教程.html</code> 里有详细步骤。或者告诉我「单选切换到 Pro」,我帮你改。</div>
+        <div class="faq-a">打开 <code>docs/配置教程.html</code> 里有详细步骤。或者告诉我「单选切换到 Pro」,我帮你改。</div>
       </div>
     </div>
 
