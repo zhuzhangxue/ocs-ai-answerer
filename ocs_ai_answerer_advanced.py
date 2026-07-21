@@ -75,19 +75,17 @@ GLM_API_KEY = os.getenv('GLM_API_KEY', '')
 BUILTIN_PRESET_BOOTSTRAP_VERSION = 2
 PRESET_DEEPSEEK_V4_FLASH = 'preset_deepseek_v4_flash'
 PRESET_DEEPSEEK_V4_PRO = 'preset_deepseek_v4_pro'
-PRESET_DOUBAO = 'preset_doubao'
 PRESET_GLM_4V_FLASH = 'preset_glm_4v_flash'
+PRESET_DOUBAO_MINI = 'preset_doubao_mini'
 BUILTIN_PRESET_IDS = (
     PRESET_DEEPSEEK_V4_FLASH,
     PRESET_DEEPSEEK_V4_PRO,
-    PRESET_DOUBAO,
     PRESET_GLM_4V_FLASH,
 )
 LEGACY_PRESET_ID_MAP = {
     'system_deepseek': PRESET_DEEPSEEK_V4_FLASH,
     'system_deepseek_chat': PRESET_DEEPSEEK_V4_FLASH,
     'system_deepseek_reasoner': PRESET_DEEPSEEK_V4_PRO,
-    'system_doubao': PRESET_DOUBAO,
 }
 
 # -------------------- 思考模式配置 --------------------
@@ -992,7 +990,6 @@ def bootstrap_builtin_presets():
             or legacy_models.get('system_deepseek_chat')
             or legacy_models.get('system_deepseek')
         ),
-        PRESET_DOUBAO: legacy_models.get('system_doubao'),
         PRESET_GLM_4V_FLASH: None
     }
 
