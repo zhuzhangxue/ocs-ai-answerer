@@ -1,0 +1,14 @@
+DEEPSEEK_API_KEY=sk-你的DeepSeek密钥
+DOUBAO_API_KEY=ark-你的豆包密钥
+
+# ============================================
+# 第一次使用: 把上面两行的"sk-xxx"和"ark-xxx"替换成你的真实 key
+# 然后双击 scripts/一键启动.bat,程序会自动读取这个文件并配置
+# ============================================
+
+# 进阶配置(可选,一般不用改):
+# 思考强度: low/medium/high
+REASONING_EFFORT=medium
+
+# 监听端口
+PORT=5000
