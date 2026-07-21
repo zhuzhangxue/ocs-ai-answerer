@@ -1,0 +1,164 @@
+{
+  "models": {
+    "preset_deepseek_v4_flash": {
+      "name": "DeepSeek V4 Flash",
+      "provider": "openai",
+      "api_key": "${DEEPSEEK_API_KEY}",
+      "base_url": "https://api.deepseek.com",
+      "model_name": "deepseek-v4-flash",
+      "is_multimodal": false,
+      "max_tokens": 500,
+      "temperature": 0.1,
+      "top_p": 0.95,
+      "supports_reasoning": true,
+      "reasoning_param_name": "reasoning_effort",
+      "reasoning_param_value": "medium",
+      "api_protocol": "openai_compat",
+      "enabled": true,
+      "is_builtin": true,
+      "created_at": "2026-07-21T13:27:09.230422",
+      "updated_at": "2026-07-21T14:20:00.000000"
+    },
+    "preset_deepseek_v4_pro": {
+      "name": "DeepSeek V4 Pro",
+      "provider": "openai",
+      "api_key": "${DEEPSEEK_API_KEY}",
+      "base_url": "https://api.deepseek.com",
+      "model_name": "deepseek-v4-pro",
+      "is_multimodal": false,
+      "max_tokens": 4096,
+      "temperature": 0.1,
+      "top_p": 0.95,
+      "supports_reasoning": true,
+      "reasoning_param_name": "reasoning_effort",
+      "reasoning_param_value": "medium",
+      "api_protocol": "openai_compat",
+      "enabled": true,
+      "is_builtin": true,
+      "created_at": "2026-07-21T13:27:09.230436",
+      "updated_at": "2026-07-21T14:20:00.000000"
+    },
+    "preset_doubao_mini": {
+      "name": "Doubao 2.0 Mini (视觉)",
+      "provider": "openai",
+      "api_key": "${DOUBAO_API_KEY}",
+      "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+      "model_name": "doubao-seed-2-0-mini-260428",
+      "is_multimodal": true,
+      "max_tokens": 4096,
+      "temperature": 0.1,
+      "top_p": 0.95,
+      "supports_reasoning": true,
+      "reasoning_param_name": "reasoning_effort",
+      "reasoning_param_value": "medium",
+      "api_protocol": "openai_compat",
+      "enabled": true,
+      "is_builtin": true,
+      "created_at": "2026-07-21T14:20:00.000000",
+      "updated_at": "2026-07-21T14:20:00.000000"
+    },
+    "preset_doubao_turbo": {
+      "name": "Doubao 2.1 Turbo (视觉)",
+      "provider": "openai",
+      "api_key": "${DOUBAO_API_KEY}",
+      "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+      "model_name": "doubao-seed-2-1-turbo-260628",
+      "is_multimodal": true,
+      "max_tokens": 4096,
+      "temperature": 0.1,
+      "top_p": 0.95,
+      "supports_reasoning": true,
+      "reasoning_param_name": "reasoning_effort",
+      "reasoning_param_value": "medium",
+      "api_protocol": "openai_compat",
+      "enabled": true,
+      "is_builtin": true,
+      "created_at": "2026-07-21T14:20:00.000000",
+      "updated_at": "2026-07-21T14:20:00.000000"
+    },
+    "preset_doubao_pro": {
+      "name": "Doubao 2.0 Pro (视觉)",
+      "provider": "openai",
+      "api_key": "${DOUBAO_API_KEY}",
+      "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+      "model_name": "doubao-seed-2-0-pro-260215",
+      "is_multimodal": true,
+      "max_tokens": 4096,
+      "temperature": 0.1,
+      "top_p": 0.95,
+      "supports_reasoning": true,
+      "reasoning_param_name": "reasoning_effort",
+      "reasoning_param_value": "medium",
+      "api_protocol": "openai_compat",
+      "enabled": true,
+      "is_builtin": true,
+      "created_at": "2026-07-21T14:20:00.000000",
+      "updated_at": "2026-07-21T14:20:00.000000"
+    },
+    "preset_doubao_2_1_pro": {
+      "name": "Doubao 2.1 Pro (视觉)",
+      "provider": "openai",
+      "api_key": "${DOUBAO_API_KEY}",
+      "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+      "model_name": "doubao-seed-2-1-pro-260628",
+      "is_multimodal": true,
+      "max_tokens": 4096,
+      "temperature": 0.1,
+      "top_p": 0.95,
+      "supports_reasoning": true,
+      "reasoning_param_name": "reasoning_effort",
+      "reasoning_param_value": "medium",
+      "api_protocol": "openai_compat",
+      "enabled": true,
+      "is_builtin": true,
+      "created_at": "2026-07-21T14:20:00.000000",
+      "updated_at": "2026-07-21T14:20:00.000000"
+    }
+  },
+  "metadata": {
+    "builtin_presets_bootstrap_version": 1,
+    "builtin_presets_bootstrapped_at": "2026-07-21T13:27:09.230459"
+  },
+  "question_type_models": {
+    "single": {
+      "models": [
+        "preset_deepseek_v4_flash",
+        "preset_deepseek_v4_pro"
+      ],
+      "enable_reasoning": false
+    },
+    "multiple": {
+      "models": [
+        "preset_deepseek_v4_pro",
+        "preset_deepseek_v4_flash"
+      ],
+      "enable_reasoning": true
+    },
+    "judgement": {
+      "models": [
+        "preset_deepseek_v4_flash",
+        "preset_deepseek_v4_pro"
+      ],
+      "enable_reasoning": false
+    },
+    "completion": {
+      "models": [
+        "preset_deepseek_v4_flash",
+        "preset_deepseek_v4_pro",
+        "preset_doubao_mini"
+      ],
+      "enable_reasoning": false
+    },
+    "image": {
+      "models": [
+        "preset_doubao_mini",
+        "preset_doubao_turbo",
+        "preset_doubao_pro",
+        "preset_doubao_2_1_pro"
+      ],
+      "enable_reasoning": false
+    }
+  },
+  "version": "1.0",
+  "updated_at": "2026-07-21T17:10:37.050554"
+}

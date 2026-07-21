@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCS答题记录可视化</title>
+    <script src="chart.js.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: #F2F6FC;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #303133;
+            margin-bottom: 30px;
+            font-size: 2em;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #409EFF;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #66B1FF;
+            box-shadow: 0 2px 4px rgba(64, 158, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: #909399;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #A6A9AD;
+        }
+
+        .btn-danger {
+            background: #F56C6C;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #F78989;
+            box-shadow: 0 2px 4px rgba(245, 108, 108, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #409EFF;
+            color: white;
+            padding: 20px;
+            border-radius: 4px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-card h3 {
+            font-size: 2em;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .stat-card p {
+            font-size: 0.9em;
+            opacity: 0.95;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+            border: 1px solid #EBEEF5;
+            position: relative;
+            height: 400px;
+        }
+
+        .chart-container h3 {
+            margin-bottom: 15px;
+            color: #303133;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .table-container {
+            margin-top: 20px;
+            border-radius: 4px;
+            border: 1px solid #EBEEF5;
+            max-height: 600px;
+            overflow: auto;
+            position: relative;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: #409EFF;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #EBEEF5;
+        }
+
+        th {
+            font-weight: 600;
+            background: #409EFF;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tbody tr:hover {
+            background: #F5F7FA;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #FAFAFA;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #909399;
+        }
+
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #409EFF;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-input {
+            padding: 10px 15px;
+            border: 1px solid #DCDFE6;
+            border-radius: 4px;
+            font-size: 14px;
+            flex: 1;
+            min-width: 200px;
+            color: #606266;
+            transition: border-color 0.2s;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: #409EFF;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-single { background: #ECF5FF; color: #409EFF; border: 1px solid #D9ECFF; }
+        .badge-multiple { background: #F4F4F5; color: #909399; border: 1px solid #E4E7ED; }
+        .badge-judgement { background: #F0F9FF; color: #67C23A; border: 1px solid #E1F3D8; }
+        .badge-completion { background: #FDF6EC; color: #E6A23C; border: 1px solid #FAECD8; }
+
+        .reasoning-yes { color: #F56C6C; font-weight: 600; }
+        .reasoning-no { color: #909399; }
+
+        /* Tooltip样式 */
+        [data-tooltip] {
+            position: relative;
+            cursor: help;
+        }
+
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            padding: 12px 16px;
+            background: rgba(48, 49, 51, 0.95);
+            color: white;
+            border-radius: 4px;
+            font-size: 14px;
+            white-space: pre-wrap;
+            max-width: 700px;
+            min-width: 400px;
+            width: max-content;
+            z-index: 99999;
+            margin-bottom: 0;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+            word-wrap: break-word;
+            line-height: 1.6;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        [data-tooltip]:hover::before {
+            content: '';
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, calc(-50% - 200px));
+            border: 8px solid transparent;
+            border-top-color: rgba(48, 49, 51, 0.95);
+            margin-bottom: 0;
+            z-index: 100000;
+            pointer-events: none;
+        }
+
+        /* 可点击的题目样式 */
+        .question-cell {
+            cursor: pointer;
+            color: #409EFF;
+            text-decoration: underline;
+            text-decoration-style: dotted;
+        }
+
+        .question-cell:hover {
+            color: #66B1FF;
+            text-decoration-color: #66B1FF;
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 4px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid #EBEEF5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #409EFF;
+            color: white;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .modal-body {
+            padding: 30px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .detail-item {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #EBEEF5;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #409EFF;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .detail-value {
+            color: #303133;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .detail-value.empty {
+            color: #999;
+            font-style: italic;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 20px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #DCDFE6;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #606266;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #409EFF;
+            color: white;
+            border-color: #409EFF;
+        }
+
+        .pagination button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .pagination button.active {
+            background: #409EFF;
+            color: white;
+            border-color: #409EFF;
+        }
+
+        .pagination span {
+            color: #606266;
+            font-size: 14px;
+        }
+
+        .pagination select {
+            padding: 6px 10px;
+            border: 1px solid #DCDFE6;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #606266;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 OCS答题记录可视化</h1>
+        
+        <div class="controls">
+            <div class="file-input-wrapper">
+                <label for="csvFile" class="btn btn-primary">📁 选择CSV文件</label>
+                <input type="file" id="csvFile" accept=".csv" />
+            </div>
+            <button class="btn btn-secondary" onclick="loadDefaultFile()">🔄 加载默认文件</button>
+            <button class="btn btn-secondary" onclick="exportData()">💾 导出数据</button>
+            <button class="btn btn-danger" onclick="clearData()">🗑️ 清空数据</button>
+        </div>
+
+        <div id="emptyState" class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="12" y1="18" x2="12" y2="12"></line>
+                <line x1="9" y1="15" x2="15" y2="15"></line>
+            </svg>
+            <p>请选择CSV文件开始查看数据</p>
+        </div>
+
+        <div id="content" style="display: none;">
+            <div class="filter-bar">
+                <input type="text" id="searchInput" class="filter-input" placeholder="🔍 搜索题目、答案...">
+                <select id="typeFilter" class="filter-input" style="max-width: 150px;">
+                    <option value="">所有题型</option>
+                    <option value="单选题">单选题</option>
+                    <option value="多选题">多选题</option>
+                    <option value="判断题">判断题</option>
+                    <option value="填空题">填空题</option>
+                </select>
+                <select id="reasoningFilter" class="filter-input" style="max-width: 150px;">
+                    <option value="">所有模式</option>
+                    <option value="是">思考模式</option>
+                    <option value="否">普通模式</option>
+                </select>
+                <select id="dateFilter" class="filter-input" style="max-width: 180px;">
+                    <option value="all">全部日期</option>
+                    <option value="today">今天</option>
+                    <option value="7">近7天</option>
+                    <option value="30">近30天</option>
+                    <option value="custom">指定日期</option>
+                </select>
+                <input type="date" id="customDate" class="filter-input" style="max-width: 180px; display: none;" placeholder="选择日期">
+            </div>
+
+            <div class="stats-grid" id="statsGrid"></div>
+            
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>题型分布</h3>
+                    <canvas id="typeChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>答题耗时分布</h3>
+                    <canvas id="timeChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>思考模式使用情况</h3>
+                    <canvas id="reasoningChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>每日答题量</h3>
+                    <canvas id="dailyChart"></canvas>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>时间戳</th>
+                            <th>题型</th>
+                            <th>题目</th>
+                            <th>选项</th>
+                            <th>原始回答</th>
+                            <th>思考过程</th>
+                            <th>处理后答案</th>
+                            <th>AI耗时</th>
+                            <th>总耗时</th>
+                            <th>模型</th>
+                            <th>思考模式</th>
+                            <th>输入Token</th>
+                            <th>输出Token</th>
+                            <th>总Token</th>
+                            <th>费用(元)</th>
+                            <th>提供商</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="pagination">
+                <button id="firstPage">首页</button>
+                <button id="prevPage">上一页</button>
+                <span id="pageInfo">第 1 页，共 1 页</span>
+                <button id="nextPage">下一页</button>
+                <button id="lastPage">末页</button>
+                <select id="pageSizeSelect">
+                    <option value="10">10条/页</option>
+                    <option value="20" selected>20条/页</option>
+                    <option value="50">50条/页</option>
+                    <option value="100">100条/页</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- 题目详情模态框 -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📋 题目详情</h2>
+                <span class="close" onclick="closeDetailModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- 详情内容将通过JavaScript填充 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let csvData = [];
+        let filteredData = [];
+        let charts = {};
+        
+        // 分页相关变量
+        let currentPage = 1;
+        let pageSize = 20;
+        let totalPages = 1;
+
+        // 文件选择
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                readCSV(file);
+            }
+        });
+
+        // 搜索和筛选
+        document.getElementById('searchInput').addEventListener('input', filterData);
+        document.getElementById('typeFilter').addEventListener('change', filterData);
+        document.getElementById('reasoningFilter').addEventListener('change', filterData);
+        document.getElementById('dateFilter').addEventListener('change', function() {
+            const customDateInput = document.getElementById('customDate');
+            if (this.value === 'custom') {
+                customDateInput.style.display = 'block';
+            } else {
+                customDateInput.style.display = 'none';
+            }
+            filterData();
+        });
+        document.getElementById('customDate').addEventListener('change', filterData);
+
+        // 分页控制
+        document.getElementById('firstPage').addEventListener('click', () => goToPage(1));
+        document.getElementById('prevPage').addEventListener('click', () => goToPage(currentPage - 1));
+        document.getElementById('nextPage').addEventListener('click', () => goToPage(currentPage + 1));
+        document.getElementById('lastPage').addEventListener('click', () => goToPage(totalPages));
+        document.getElementById('pageSizeSelect').addEventListener('change', function() {
+            pageSize = parseInt(this.value);
+            currentPage = 1;
+            updateTable();
+        });
+
+        // 读取CSV文件
+        function readCSV(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                parseCSV(text);
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        // 加载默认文件
+        function loadDefaultFile() {
+            fetch('/api/csv')
+                .then(response => {
+                    if (!response.ok) {
+                        console.error('加载CSV失败:', response.status, response.statusText);
+                        return null;
+                    }
+                    return response.text();
+                })
+                .then(text => {
+                    if (text) {
+                        parseCSV(text);
+                    } else {
+                        console.log('CSV文件为空或不存在');
+                    }
+                })
+                .catch(err => {
+                    console.error('加载CSV文件失败:', err);
+                    alert('加载CSV文件失败，请手动选择文件');
+                });
+        }
+
+        // 解析CSV（支持多行字段）
+        function parseCSV(text) {
+            // 先读取表头
+            const firstLineEnd = text.indexOf('\n');
+            if (firstLineEnd === -1) {
+                alert('CSV文件格式错误：没有找到换行符');
+                return;
+            }
+            
+            const headerLine = text.substring(0, firstLineEnd);
+            const headers = parseCSVLine(headerLine).map(h => h.trim());
+            
+            if (headers.length === 0) {
+                alert('CSV文件格式错误：表头为空');
+                return;
+            }
+            
+            csvData = [];
+            
+            // 解析数据行（需要考虑引号内的换行符）
+            let rest = text.substring(firstLineEnd + 1);
+            let currentLine = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < rest.length; i++) {
+                const char = rest[i];
+                const nextChar = rest[i + 1];
+                
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        // 转义的引号
+                        currentLine += '"';
+                        i++;
+                    } else {
+                        // 切换引号状态
+                        inQuotes = !inQuotes;
+                        currentLine += char;
+                    }
+                } else if (char === '\n' && !inQuotes) {
+                    // 真正的行结束（不在引号内）
+                    if (currentLine.trim()) {
+                        const values = parseCSVLine(currentLine);
+                        if (values.length > 0) {
+                            const row = {};
+                            headers.forEach((header, index) => {
+                                row[header] = (values[index] || '').trim();
+                            });
+                            csvData.push(row);
+                        }
+                    }
+                    currentLine = '';
+                } else {
+                    currentLine += char;
+                }
+            }
+            
+            // 处理最后一行（如果文件末尾没有换行符）
+            if (currentLine.trim()) {
+                const values = parseCSVLine(currentLine);
+                if (values.length > 0) {
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = (values[index] || '').trim();
+                    });
+                    csvData.push(row);
+                }
+            }
+
+            if (csvData.length === 0) {
+                alert('CSV文件中没有有效数据');
+                return;
+            }
+
+            // 按时间戳降序排列（最新的在前面）
+            csvData.sort((a, b) => {
+                const dateA = new Date(a['时间戳'] || '');
+                const dateB = new Date(b['时间戳'] || '');
+                return dateB - dateA;  // 降序
+            });
+
+            filteredData = csvData;
+            currentPage = 1;  // 重置到第一页
+            displayData();
+        }
+
+        // 解析CSV行（处理引号内的逗号和换行符）
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            // 处理转义的引号（双引号转义）
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+                
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        // 转义的引号（双引号）
+                        current += '"';
+                        i++; // 跳过下一个引号
+                    } else {
+                        // 开始或结束引号
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    // 字段分隔符（不在引号内）
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            // 添加最后一个字段
+            result.push(current);
+            return result;
+        }
+
+        // 筛选数据
+        function filterData() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const typeFilter = document.getElementById('typeFilter').value;
+            const reasoningFilter = document.getElementById('reasoningFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            const customDate = document.getElementById('customDate').value;
+
+            filteredData = csvData.filter(row => {
+                const matchSearch = !searchTerm || 
+                    (row['题目'] && row['题目'].toLowerCase().includes(searchTerm)) ||
+                    (row['处理后答案'] && row['处理后答案'].toLowerCase().includes(searchTerm)) ||
+                    (row['原始回答'] && row['原始回答'].toLowerCase().includes(searchTerm));
+
+                const matchType = !typeFilter || row['题型'] === typeFilter;
+                const matchReasoning = !reasoningFilter || row['思考模式'] === reasoningFilter;
+
+                // 日期筛选
+                let matchDate = true;
+                if (dateFilter && dateFilter !== 'all' && row['时间戳']) {
+                    const rowDate = new Date(row['时间戳'].split(' ')[0]);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    if (dateFilter === 'today') {
+                        const rowDateOnly = new Date(rowDate);
+                        rowDateOnly.setHours(0, 0, 0, 0);
+                        matchDate = rowDateOnly.getTime() === today.getTime();
+                    } else if (dateFilter === 'custom' && customDate) {
+                        const customDateOnly = new Date(customDate);
+                        customDateOnly.setHours(0, 0, 0, 0);
+                        const rowDateOnly = new Date(rowDate);
+                        rowDateOnly.setHours(0, 0, 0, 0);
+                        matchDate = rowDateOnly.getTime() === customDateOnly.getTime();
+                    } else if (!isNaN(dateFilter)) {
+                        // 近N天
+                        const daysAgo = parseInt(dateFilter);
+                        const cutoffDate = new Date(today);
+                        cutoffDate.setDate(cutoffDate.getDate() - daysAgo);
+                        rowDate.setHours(0, 0, 0, 0);
+                        matchDate = rowDate >= cutoffDate && rowDate <= today;
+                    }
+                }
+
+                return matchSearch && matchType && matchReasoning && matchDate;
+            });
+
+            // 按时间戳降序排列（最新的在前面）
+            filteredData.sort((a, b) => {
+                const dateA = new Date(a['时间戳'] || '');
+                const dateB = new Date(b['时间戳'] || '');
+                return dateB - dateA;  // 降序
+            });
+
+            currentPage = 1;  // 重置到第一页
+            displayData();
+        }
+
+        // 显示数据
+        function displayData() {
+            if (filteredData.length === 0) {
+                document.getElementById('emptyState').style.display = 'block';
+                document.getElementById('content').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+
+            updateStats();
+            updateCharts();
+            updateTable();
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            const total = filteredData.length;
+            const avgTime = total > 0 ? filteredData.reduce((sum, row) => sum + parseFloat(row['AI耗时(秒)'] || 0), 0) / total : 0;
+            const reasoningCount = filteredData.filter(row => row['思考模式'] === '是').length;
+            const totalTime = filteredData.reduce((sum, row) => sum + parseFloat(row['总耗时(秒)'] || 0), 0);
+            
+            // 计算费用统计
+            const totalCost = filteredData.reduce((sum, row) => sum + parseFloat(row['费用(元)'] || 0), 0);
+            const totalTokens = filteredData.reduce((sum, row) => sum + parseInt(row['总Token'] || 0), 0);
+            const totalInputTokens = filteredData.reduce((sum, row) => sum + parseInt(row['输入Token'] || 0), 0);
+            const totalOutputTokens = filteredData.reduce((sum, row) => sum + parseInt(row['输出Token'] || 0), 0);
+            const avgCost = total > 0 ? totalCost / total : 0;
+
+            const statsHTML = `
+                <div class="stat-card">
+                    <h3>${total}</h3>
+                    <p>总答题数</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${avgTime.toFixed(2)}秒</h3>
+                    <p>平均AI耗时</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${reasoningCount}</h3>
+                    <p>思考模式答题</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${(totalTime / 60).toFixed(1)}分钟</h3>
+                    <p>总耗时</p>
+                </div>
+                <div class="stat-card" style="background: #F56C6C;">
+                    <h3>¥${totalCost.toFixed(4)}</h3>
+                    <p>总费用</p>
+                </div>
+                <div class="stat-card" style="background: #909399;">
+                    <h3>${totalTokens.toLocaleString()}</h3>
+                    <p>总Token数</p>
+                </div>
+                <div class="stat-card" style="background: #67C23A;">
+                    <h3>${totalInputTokens.toLocaleString()}</h3>
+                    <p>输入Token</p>
+                </div>
+                <div class="stat-card" style="background: #E6A23C;">
+                    <h3>${totalOutputTokens.toLocaleString()}</h3>
+                    <p>输出Token</p>
+                </div>
+            `;
+
+            document.getElementById('statsGrid').innerHTML = statsHTML;
+        }
+
+        // 更新图表
+        function updateCharts() {
+            // 题型分布
+            const typeCounts = {};
+            filteredData.forEach(row => {
+                const type = row['题型'] || '未知';
+                typeCounts[type] = (typeCounts[type] || 0) + 1;
+            });
+
+            updateChart('typeChart', {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(typeCounts),
+                    datasets: [{
+                        data: Object.values(typeCounts),
+                        backgroundColor: ['#409EFF', '#67C23A', '#E6A23C', '#F56C6C', '#909399']
+                    }]
+                }
+            });
+
+            // 答题耗时分布
+            const timeRanges = {
+                '0-2秒': 0,
+                '2-5秒': 0,
+                '5-10秒': 0,
+                '10秒以上': 0
+            };
+
+            filteredData.forEach(row => {
+                const time = parseFloat(row['AI耗时(秒)'] || 0);
+                if (time <= 2) timeRanges['0-2秒']++;
+                else if (time <= 5) timeRanges['2-5秒']++;
+                else if (time <= 10) timeRanges['5-10秒']++;
+                else timeRanges['10秒以上']++;
+            });
+
+            updateChart('timeChart', {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(timeRanges),
+                    datasets: [{
+                        label: '题目数量',
+                        data: Object.values(timeRanges),
+                        backgroundColor: '#409EFF'
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // 思考模式使用情况
+            const reasoningCounts = {
+                '思考模式': filteredData.filter(row => row['思考模式'] === '是').length,
+                '普通模式': filteredData.filter(row => row['思考模式'] === '否').length
+            };
+
+            updateChart('reasoningChart', {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(reasoningCounts),
+                    datasets: [{
+                        data: Object.values(reasoningCounts),
+                        backgroundColor: ['#E6A23C', '#409EFF']
+                    }]
+                }
+            });
+
+            // 每日答题量
+            const dailyCounts = {};
+            filteredData.forEach(row => {
+                const date = (row['时间戳'] || '').split(' ')[0];
+                if (date) {
+                    dailyCounts[date] = (dailyCounts[date] || 0) + 1;
+                }
+            });
+
+            const sortedDates = Object.keys(dailyCounts).sort();
+            updateChart('dailyChart', {
+                type: 'line',
+                data: {
+                    labels: sortedDates,
+                    datasets: [{
+                        label: '答题数量',
+                        data: sortedDates.map(date => dailyCounts[date]),
+                        borderColor: '#409EFF',
+                        backgroundColor: 'rgba(64, 158, 255, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        // 更新单个图表
+        function updateChart(canvasId, config) {
+            const canvas = document.getElementById(canvasId);
+            if (charts[canvasId]) {
+                charts[canvasId].destroy();
+            }
+            charts[canvasId] = new Chart(canvas, {
+                ...config,
+                options: {
+                    ...config.options,
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // 工具函数：转义HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 工具函数：创建带tooltip的单元格
+        function createCellWithTooltip(text, maxLength = 30) {
+            const fullText = text || '';
+            const displayText = fullText.length > maxLength ? fullText.substring(0, maxLength) + '...' : fullText;
+            if (fullText.length > maxLength) {
+                return `<span data-tooltip="${escapeHtml(fullText)}">${escapeHtml(displayText)}</span>`;
+            }
+            return escapeHtml(displayText);
+        }
+
+        // 更新表格
+        function updateTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            // 计算分页
+            totalPages = Math.ceil(filteredData.length / pageSize);
+            if (totalPages === 0) totalPages = 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            // 获取当前页的数据
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, filteredData.length);
+            const pageData = filteredData.slice(startIndex, endIndex);
+
+            pageData.forEach((row, index) => {
+                const actualIndex = startIndex + index;  // 在filteredData中的实际索引
+                const tr = document.createElement('tr');
+                const typeClass = {
+                    '单选题': 'badge-single',
+                    '多选题': 'badge-multiple',
+                    '判断题': 'badge-judgement',
+                    '填空题': 'badge-completion'
+                }[row['题型']] || '';
+
+                const questionText = row['题目'] || '';
+                const questionDisplay = questionText.length > 50 ? questionText.substring(0, 50) + '...' : questionText;
+                
+                // 创建所有单元格
+                const timeCell = document.createElement('td');
+                timeCell.innerHTML = escapeHtml(row['时间戳'] || '');
+                
+                const typeCell = document.createElement('td');
+                typeCell.innerHTML = `<span class="badge ${typeClass}">${escapeHtml(row['题型'] || '')}</span>`;
+                
+                // 创建题目单元格（可点击）
+                const questionCell = document.createElement('td');
+                questionCell.className = 'question-cell';
+                questionCell.setAttribute('data-index', actualIndex);  // 使用实际索引
+                questionCell.textContent = questionDisplay;
+                if (questionText.length > 50) {
+                    questionCell.setAttribute('data-tooltip', questionText);
+                }
+                // 添加点击事件（从data-index属性获取索引）
+                questionCell.addEventListener('click', function() {
+                    const idx = parseInt(this.getAttribute('data-index'), 10);
+                    if (!isNaN(idx)) {
+                        showDetailModal(idx);
+                    } else {
+                        console.error('Invalid index from data-index:', this.getAttribute('data-index'));
+                    }
+                });
+                
+                const optionsCell = document.createElement('td');
+                optionsCell.innerHTML = createCellWithTooltip(row['选项'] || '', 30);
+                
+                const rawAnswerCell = document.createElement('td');
+                rawAnswerCell.innerHTML = createCellWithTooltip(row['原始回答'] || '', 30);
+                
+                const reasoningCell = document.createElement('td');
+                reasoningCell.innerHTML = createCellWithTooltip(row['思考过程'] || '', 30);
+                
+                const processedAnswerCell = document.createElement('td');
+                processedAnswerCell.innerHTML = escapeHtml(row['处理后答案'] || '');
+                
+                const aiTimeCell = document.createElement('td');
+                aiTimeCell.innerHTML = escapeHtml(row['AI耗时(秒)'] || '') + '秒';
+                
+                const totalTimeCell = document.createElement('td');
+                totalTimeCell.innerHTML = escapeHtml(row['总耗时(秒)'] || '') + '秒';
+                
+                const modelCell = document.createElement('td');
+                modelCell.innerHTML = escapeHtml(row['模型'] || '');
+                
+                const reasoningModeCell = document.createElement('td');
+                reasoningModeCell.className = row['思考模式'] === '是' ? 'reasoning-yes' : 'reasoning-no';
+                reasoningModeCell.innerHTML = escapeHtml(row['思考模式'] || '');
+                
+                const inputTokenCell = document.createElement('td');
+                inputTokenCell.innerHTML = (row['输入Token'] || '0').toLocaleString();
+                
+                const outputTokenCell = document.createElement('td');
+                outputTokenCell.innerHTML = (row['输出Token'] || '0').toLocaleString();
+                
+                const totalTokenCell = document.createElement('td');
+                totalTokenCell.innerHTML = (row['总Token'] || '0').toLocaleString();
+                
+                const costCell = document.createElement('td');
+                const cost = parseFloat(row['费用(元)'] || 0);
+                costCell.innerHTML = cost > 0 ? `¥${cost.toFixed(6)}` : '-';
+                costCell.style.color = cost > 0 ? '#e74c3c' : '#999';
+                costCell.style.fontWeight = cost > 0 ? 'bold' : 'normal';
+                
+                const providerCell = document.createElement('td');
+                providerCell.innerHTML = escapeHtml(row['提供商'] || '');
+                
+                // 将单元格添加到行
+                tr.appendChild(timeCell);
+                tr.appendChild(typeCell);
+                tr.appendChild(questionCell);
+                tr.appendChild(optionsCell);
+                tr.appendChild(rawAnswerCell);
+                tr.appendChild(reasoningCell);
+                tr.appendChild(processedAnswerCell);
+                tr.appendChild(aiTimeCell);
+                tr.appendChild(totalTimeCell);
+                tr.appendChild(modelCell);
+                tr.appendChild(reasoningModeCell);
+                tr.appendChild(inputTokenCell);
+                tr.appendChild(outputTokenCell);
+                tr.appendChild(totalTokenCell);
+                tr.appendChild(costCell);
+                tr.appendChild(providerCell);
+                
+                tbody.appendChild(tr);
+            });
+
+            // 更新分页控件
+            updatePagination();
+        }
+
+        // 更新分页控件
+        function updatePagination() {
+            const pageInfo = document.getElementById('pageInfo');
+            const firstPageBtn = document.getElementById('firstPage');
+            const prevPageBtn = document.getElementById('prevPage');
+            const nextPageBtn = document.getElementById('nextPage');
+            const lastPageBtn = document.getElementById('lastPage');
+
+            pageInfo.textContent = `第 ${currentPage} 页，共 ${totalPages} 页（共 ${filteredData.length} 条记录）`;
+
+            firstPageBtn.disabled = currentPage === 1;
+            prevPageBtn.disabled = currentPage === 1;
+            nextPageBtn.disabled = currentPage === totalPages;
+            lastPageBtn.disabled = currentPage === totalPages;
+        }
+
+        // 跳转到指定页
+        function goToPage(page) {
+            if (page < 1 || page > totalPages || page === currentPage) {
+                return;
+            }
+            currentPage = page;
+            updateTable();
+        }
+
+        // 显示题目详情模态框（使用索引）
+        function showDetailModal(index) {
+            // 严格验证索引
+            if (index === undefined || index === null || isNaN(index)) {
+                console.error('Invalid index:', index, 'Type:', typeof index);
+                return;
+            }
+            
+            const numIndex = parseInt(index, 10);
+            if (isNaN(numIndex)) {
+                console.error('Cannot parse index:', index);
+                return;
+            }
+            
+            if (numIndex < 0 || numIndex >= filteredData.length) {
+                console.error('Index out of range:', numIndex, 'filteredData length:', filteredData.length);
+                return;
+            }
+            
+            const row = filteredData[numIndex];
+            if (!row || typeof row !== 'object') {
+                console.error('Row not found at index:', numIndex, 'filteredData:', filteredData);
+                return;
+            }
+            
+            showDetailModalContent(row);
+        }
+
+        // 显示题目详情模态框内容
+        function showDetailModalContent(row) {
+            if (!row || typeof row !== 'object') {
+                console.error('Invalid row data:', row);
+                return;
+            }
+            
+            const modal = document.getElementById('detailModal');
+            const modalBody = document.getElementById('modalBody');
+            
+            if (!modal || !modalBody) {
+                console.error('Modal elements not found');
+                return;
+            }
+            
+            const typeClass = {
+                '单选题': 'badge-single',
+                '多选题': 'badge-multiple',
+                '判断题': 'badge-judgement',
+                '填空题': 'badge-completion'
+            }[row['题型']] || '';
+
+            modalBody.innerHTML = `
+                <div class="detail-item">
+                    <div class="detail-label">时间戳</div>
+                    <div class="detail-value">${escapeHtml(row['时间戳'] || '')}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">题型</div>
+                    <div class="detail-value"><span class="badge ${typeClass}">${escapeHtml(row['题型'] || '')}</span></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">题目</div>
+                    <div class="detail-value">${escapeHtml(row['题目'] || '') || '<span class="empty">无</span>'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">选项</div>
+                    <div class="detail-value">${escapeHtml(row['选项'] || '') || '<span class="empty">无选项</span>'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">原始回答</div>
+                    <div class="detail-value">${escapeHtml(row['原始回答'] || '') || '<span class="empty">无</span>'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">思考过程</div>
+                    <div class="detail-value">${escapeHtml(row['思考过程'] || '') || '<span class="empty">无思考过程</span>'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">处理后答案</div>
+                    <div class="detail-value">${escapeHtml(row['处理后答案'] || '') || '<span class="empty">无</span>'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">AI耗时</div>
+                    <div class="detail-value">${escapeHtml(row['AI耗时(秒)'] || '')}秒</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">总耗时</div>
+                    <div class="detail-value">${escapeHtml(row['总耗时(秒)'] || '')}秒</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">模型</div>
+                    <div class="detail-value">${escapeHtml(row['模型'] || '') || '<span class="empty">未知</span>'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">思考模式</div>
+                    <div class="detail-value"><span class="${row['思考模式'] === '是' ? 'reasoning-yes' : 'reasoning-no'}">${escapeHtml(row['思考模式'] || '')}</span></div>
+                </div>
+            `;
+            
+            modal.style.display = 'block';
+        }
+
+        // 关闭详情模态框
+        function closeDetailModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('detailModal');
+            if (event.target === modal) {
+                closeDetailModal();
+            }
+        }
+
+        // 导出数据
+        function exportData() {
+            if (filteredData.length === 0) {
+                alert('没有数据可导出');
+                return;
+            }
+
+            const headers = Object.keys(filteredData[0]);
+            const csvContent = [
+                headers.join(','),
+                ...filteredData.map(row => 
+                    headers.map(header => {
+                        const value = row[header] || '';
+                        return `"${value.replace(/"/g, '""')}"`;
+                    }).join(',')
+                )
+            ].join('\n');
+
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `ocs_answers_export_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        // 清空数据（清空CSV文件）
+        function clearData() {
+            if (csvData.length === 0 && filteredData.length === 0) {
+                alert('当前没有数据可清空');
+                return;
+            }
+
+            const totalCount = csvData.length || filteredData.length;
+            if (confirm(`确定要清空CSV文件吗？\n\n当前共有 ${totalCount} 条记录\n\n此操作将清空CSV文件中的所有数据（保留表头），此操作不可恢复！`)) {
+                // 调用API清空CSV文件
+                fetch('/api/csv/clear', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 清空数据数组
+                        csvData = [];
+                        filteredData = [];
+                        
+                        // 清空表格
+                        const tbody = document.getElementById('tableBody');
+                        if (tbody) {
+                            tbody.innerHTML = '';
+                        }
+                        
+                        // 清空统计信息
+                        const statsGrid = document.getElementById('statsGrid');
+                        if (statsGrid) {
+                            statsGrid.innerHTML = '';
+                        }
+                        
+                        // 销毁所有图表
+                        Object.keys(charts).forEach(key => {
+                            if (charts[key]) {
+                                try {
+                                    charts[key].destroy();
+                                } catch (e) {
+                                    console.warn('销毁图表失败:', key, e);
+                                }
+                                charts[key] = null;
+                            }
+                        });
+                        charts = {};
+                        
+                        // 清空筛选条件
+                        const searchInput = document.getElementById('searchInput');
+                        const typeFilter = document.getElementById('typeFilter');
+                        const reasoningFilter = document.getElementById('reasoningFilter');
+                        const dateFilter = document.getElementById('dateFilter');
+                        const customDate = document.getElementById('customDate');
+                        if (searchInput) searchInput.value = '';
+                        if (typeFilter) typeFilter.value = '';
+                        if (reasoningFilter) reasoningFilter.value = '';
+                        if (dateFilter) dateFilter.value = 'all';
+                        if (customDate) {
+                            customDate.value = '';
+                            customDate.style.display = 'none';
+                        }
+                        
+                        // 显示空状态
+                        const emptyState = document.getElementById('emptyState');
+                        const content = document.getElementById('content');
+                        if (emptyState) emptyState.style.display = 'block';
+                        if (content) content.style.display = 'none';
+                        
+                        alert('✅ CSV文件已清空！');
+                    } else {
+                        alert('❌ 清空失败: ' + (data.error || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('清空CSV失败:', error);
+                    alert('❌ 清空失败: ' + error.message);
+                });
+            }
+        }
+
+        // 页面加载时尝试加载默认文件
+        window.addEventListener('load', () => {
+            // 尝试加载默认文件，失败时静默处理（可能是file://协议的CORS限制）
+            loadDefaultFile();
+        });
+    </script>
+</body>
+</html>

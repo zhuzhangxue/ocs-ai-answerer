@@ -1,0 +1,20 @@
+[
+  {
+    "name": "AI智能答题",
+    "url": "http://localhost:5000/api/answer",
+    "method": "post",
+    "type": "fetch",
+    "contentType": "json",
+    "homepage": "https://github.com/lkd6666/ocs-ai-answerer",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "data": {
+      "question": "${title}",
+      "options": "${options}",
+      "type": "${type}",
+      "images": []
+    },
+    "handler": "return (res)=>res.success && res.ocs_format ? [res.ocs_format] : []"
+  }
+]

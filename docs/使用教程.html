@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>OCS AI 答题助手 - 完整使用教程 (从下载到答题)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #2c3e50;
+    line-height: 1.7;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+  }
+  .header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px;
+    text-align: center;
+  }
+  .header h1 { font-size: 32px; margin-bottom: 10px; }
+  .header .subtitle { font-size: 18px; opacity: 0.9; }
+  .header .meta { margin-top: 20px; font-size: 14px; opacity: 0.85; }
+  .content { padding: 40px; }
+  .toc {
+    background: #f8f9fa;
+    border-left: 4px solid #667eea;
+    padding: 20px 30px;
+    margin-bottom: 30px;
+    border-radius: 8px;
+  }
+  .toc h2 { font-size: 18px; margin-bottom: 12px; color: #667eea; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; font-size: 14px; }
+  .phase {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+    border-top: 4px solid #667eea;
+  }
+  .phase-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .phase-icon {
+    font-size: 32px;
+    margin-right: 12px;
+  }
+  .phase-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #2c3e50;
+  }
+  .step {
+    background: white;
+    border-left: 4px solid #52c41a;
+    padding: 20px;
+    margin: 16px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .step-num {
+    display: inline-block;
+    background: #52c41a;
+    color: white;
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    text-align: center;
+    border-radius: 50%;
+    font-weight: bold;
+    margin-right: 10px;
+  }
+  .step h3 { display: inline-block; font-size: 18px; color: #2c3e50; }
+  .step p { margin: 10px 0; }
+  .step ol, .step ul { margin-left: 20px; margin-top: 8px; }
+  .step li { margin: 6px 0; }
+  .note {
+    background: #fff7e6;
+    border-left: 4px solid #faad14;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  .warning {
+    background: #fff1f0;
+    border-left: 4px solid #ff4d4f;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  .success {
+    background: #f6ffed;
+    border-left: 4px solid #52c41a;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  .info {
+    background: #e6f7ff;
+    border-left: 4px solid #1890ff;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  code {
+    background: #f5f5f5;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-family: "Consolas", "Monaco", monospace;
+    color: #d63384;
+    font-size: 14px;
+  }
+  pre {
+    background: #2d2d2d;
+    color: #f8f8f2;
+    padding: 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  .btn {
+    display: inline-block;
+    background: #1890ff;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+    margin: 4px 4px;
+  }
+  .btn:hover { background: #40a9ff; }
+  .btn.green { background: #52c41a; }
+  .btn.green:hover { background: #73d13d; }
+  .btn.orange { background: #fa8c16; }
+  .btn.orange:hover { background: #ffa940; }
+  .check {
+    display: inline-block;
+    background: #52c41a;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 8px;
+  }
+  .screenshot {
+    background: #fafafa;
+    border: 2px dashed #d9d9d9;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 12px 0;
+    text-align: center;
+    color: #999;
+    font-style: italic;
+  }
+  .time-est {
+    display: inline-block;
+    background: #f0f0f0;
+    color: #666;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 8px;
+  }
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, #d9d9d9, transparent);
+    margin: 30px 0;
+  }
+  .summary-box {
+    background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 12px;
+    margin: 30px 0;
+  }
+  .summary-box h2 { margin-bottom: 15px; }
+  .summary-box ul { padding-left: 20px; }
+  .summary-box li { margin: 6px 0; }
+  .faq-item {
+    background: white;
+    border: 1px solid #e8e8e8;
+    padding: 16px;
+    margin: 10px 0;
+    border-radius: 8px;
+  }
+  .faq-q { font-weight: bold; color: #1890ff; margin-bottom: 8px; }
+  .faq-a { color: #555; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🤖 OCS AI 智能答题助手</h1>
+    <div class="subtitle">从下载到答题 - 完整图文教程</div>
+    <div class="meta">⏱️ 完整流程约 5 分钟 · 适用 Windows 10/11 · 零基础友好</div>
+  </div>
+
+  <div class="content">
+
+    <div class="toc">
+      <h2>📋 目录</h2>
+      <ol>
+        <li><strong>第一阶段：准备</strong>（下载、解压）</li>
+        <li><strong>第二阶段：获取 API Key</strong>（DeepSeek + 豆包）</li>
+        <li><strong>第三阶段：填 Key + 启动</strong>（双击 bat）</li>
+        <li><strong>第四阶段：浏览器部署</strong>（装扩展 + 装 OCS 脚本）</li>
+        <li><strong>第五阶段：导入题库配置</strong>（OCS 悬浮窗）</li>
+        <li><strong>第六阶段：答题测试</strong>（开始使用）</li>
+        <li><strong>常见问题 FAQ</strong></li>
+      </ol>
+    </div>
+
+    <!-- ========== 第一阶段 ========== -->
+    <div class="phase">
+      <div class="phase-header">
+        <span class="phase-icon">📦</span>
+        <span class="phase-title">第一阶段：下载 + 解压 <span class="time-est">1 分钟</span></span>
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <h3>下载压缩包 <span class="check">必需</span></h3>
+        <p>从你拿到的渠道下载 <code>OCS-AI-Answerer-一键包.zip</code> (约 151 KB)。</p>
+        <div class="info">💡 文件很小，发微信/QQ/U盘/网盘都很方便</div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <h3>解压到合适位置 <span class="check">必需</span></h3>
+        <p>右键 <code>OCS-AI-Answerer-一键包.zip</code> → 「解压到当前文件夹」</p>
+        <p>解压后会得到一个文件夹：<code>OCS-AI-Answerer-一键包</code></p>
+        <div class="note">⚠️ <strong>建议位置</strong>：解压到 <code>D:\OCS答题\</code> 或 <code>桌面\OCS答题\</code><br>
+        ❌ <strong>避免</strong>：桌面（路径有空格有时会有问题）、C 盘 Program Files（权限问题）</div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <h3>查看文件夹内容</h3>
+        <p>打开解压后的文件夹，应该看到 11 个文件：</p>
+<pre>
+OCS-AI-Answerer-一键包/
+├── 一键启动.bat          ⭐ 核心文件,稍后双击它
+├── keys.txt              ⭐ 填 API Key 用
+├── INSTALL.html          📖 浏览器部署指南
+├── 配置教程.html         📖 改模型配置教程
+├── 添加新模型教程.html   📖 接入新模型教程
+├── ocs_ai_answerer_advanced.py  主程序
+├── custom_models.json    模型配置
+├── ocs_config.json       OCS 题库配置
+├── env.template          环境变量模板
+├── requirements.txt      Python 依赖
+└── config_panel.html     配置面板(备用)
+</pre>
+        <div class="success">✅ 文件齐全,可以进入第二阶段</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ========== 第二阶段 ========== -->
+    <div class="phase">
+      <div class="phase-header">
+        <span class="phase-icon">🔑</span>
+        <span class="phase-title">第二阶段：获取 API Key <span class="time-est">3 分钟</span></span>
+      </div>
+
+      <div class="info">💡 <strong>什么是 API Key？</strong>它是你调用 AI 大模型的"通行证"。本项目用两个：DeepSeek（推理大脑）+ 豆包（视觉眼睛）。</div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <h3>注册 DeepSeek 并获取 Key <span class="check">必需</span></h3>
+        <p>DeepSeek 负责"思考答题"，是整个项目的大脑。</p>
+        <a class="btn" href="https://platform.deepseek.com/" target="_blank">打开 DeepSeek 平台 →</a>
+        <ol>
+          <li>点击右上角「注册」(支持手机号/微信)</li>
+          <li>登录后点击左栏「<strong>API Keys</strong>」</li>
+          <li>点击「<strong>创建 API Key</strong>」→ 名字随便填(如 "OCS")</li>
+          <li><strong>立即复制</strong>显示的 key（形如 <code>sk-xxxxxxxxxxxxxxxx</code>）</li>
+        </ol>
+        <div class="warning">⚠️ Key 只显示一次！必须立刻复制保存到记事本</div>
+        <div class="note">💰 <strong>费用</strong>: 充值 1 元就够用很久(V4 极便宜,具体价格以 <a href="https://platform.deepseek.com/pricing" target="_blank">DeepSeek 价格页</a> 为准)</div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <h3>注册火山方舟并获取豆包 Key <span class="check">必需</span></h3>
+        <p>豆包负责"看图认字"(OCR),用火山方舟平台调用。</p>
+        <a class="btn" href="https://console.volcengine.com/ark" target="_blank">打开火山方舟 →</a>
+        <ol>
+          <li>用抖音/手机号注册登录</li>
+          <li>点击左侧栏目「<strong>推理</strong>」</li>
+          <li>进入「<strong>在线推理</strong>」页面</li>
+          <li>点击「<strong>快速入门</strong>」</li>
+          <li>在快速入门页点击「<strong>创建 API Key</strong>」</li>
+          <li>勾选所有模型权限 → 创建</li>
+          <li><strong>立即复制</strong>Key(形如 <code>ark-xxxxxxxx-xxxxxxxx-xxxxxxxx</code>)</li>
+        </ol>
+        <div class="note">💰 <strong>费用</strong>: 豆包 seed 系列<strong>有大量免费额度</strong>,基本不花钱</div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <h3>在豆包平台开通模型 <span class="check">必需</span></h3>
+        <p>开通模型后才能调用,操作是免费的。提供<strong>两种方式</strong>,选一种即可：</p>
+
+        <div class="info" style="background:#e6f7ff; border-left-color:#1890ff; margin-top: 16px;">
+          <strong>方式 A：快速入门入口(推荐)</strong>
+          <ol style="margin-top: 8px;">
+            <li>还是刚才的「<strong>快速入门</strong>」页面</li>
+            <li>往下翻,找到「<strong>Step2 快速接入测试</strong>」模块</li>
+            <li>在模型下拉框里选 <code>doubao-seed-2-0-mini</code></li>
+            <li>点旁边的「<strong>开通</strong>」按钮</li>
+            <li>(可选)再选 <code>doubao-seed-2-1-turbo</code> 和 <code>doubao-seed-2-1-pro</code> 也开通</li>
+          </ol>
+        </div>
+
+        <div class="info" style="background:#fff7e6; border-left-color:#fa8c16;">
+          <strong>方式 B：模型广场入口</strong>
+          <ol style="margin-top: 8px;">
+            <li>顶部菜单点「<strong>模型广场</strong>」</li>
+            <li>搜索 <code>doubao-seed</code> 找到 seed 系列</li>
+            <li>点右上角「<strong>API 接入</strong>」按钮</li>
+            <li>会跳到「<strong>Step2 快速接入测试</strong>」页面</li>
+            <li>在模型下拉里选 <code>doubao-seed-2-0-mini</code> → 开通</li>
+            <li>同样方法开通 turbo 和 pro</li>
+          </ol>
+        </div>
+        <div class="success">✅ 现在你手上有 2 个 key: 一个 <code>sk-</code> 开头,一个 <code>ark-</code> 开头</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ========== 第三阶段 ========== -->
+    <div class="phase">
+      <div class="phase-header">
+        <span class="phase-icon">⚡</span>
+        <span class="phase-title">第三阶段：填 Key + 双击启动 <span class="time-est">2 分钟</span></span>
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <h3>填入 keys.txt <span class="check">关键</span></h3>
+        <p>在 <code>OCS-AI-Answerer-一键包</code> 文件夹里,找到 <code>keys.txt</code></p>
+        <p>右键 → 「打开方式」→ 「记事本」</p>
+        <p>把里面的占位符替换成你的真实 key：</p>
+<pre>
+# 改成你的真实 key（删除 <> 部分,只保留 key 本身）
+DEEPSEEK_API_KEY=sk-你刚才复制的 DeepSeek key
+DOUBAO_API_KEY=ark-你刚才复制的火山方舟 key
+</pre>
+        <p>按 <code>Ctrl + S</code> 保存,关闭记事本。</p>
+        <div class="warning">⚠️ 格式必须保持 <code>KEY=值</code> 中间不要有空格、不要加引号、不要有空行</div>
+      </div>
+
+      <div class="screenshot">
+        📷 keys.txt 正确示例(实际部署时,key 会变成真实字符串)<br>
+        <pre style="text-align:left; display:inline-block;">
+DEEPSEEK_API_KEY=sk-你的真实key
+DOUBAO_API_KEY=ark-你的真实key
+        </pre>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <h3>双击「一键启动.bat」 <span class="check">启动</span></h3>
+        <p>在文件夹里找到 <code>一键启动.bat</code>,双击运行。</p>
+        <p>会弹出一个黑色 cmd 窗口,显示 6 步进度。</p>
+        <div class="note">💡 <strong>不要关闭这个黑窗口</strong>(除非服务启动完成)</div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <h3>观察自动安装过程 <span class="time-est">30-90 秒</span></h3>
+        <p>你会看到类似这样的进度：</p>
+<pre>
+════════════════════════════════════════════
+  🤖  OCS AI 智能答题助手 - 一键启动
+════════════════════════════════════════════
+
+[步骤 1/6] 检查 Python 环境
+✅ Python 3.13.9 已安装
+
+[步骤 2/6] 准备虚拟环境
+✅ 虚拟环境已存在,跳过
+
+[步骤 3/6] 安装 Python 依赖包
+📦 升级 pip...
+📦 安装依赖 (Flask, openai, httpx 等)...
+✅ 依赖安装完成
+
+[步骤 4/6] 配置 API Key
+📝 从 keys.txt 读取并写入 .env...
+✅ API Key 已从 keys.txt 写入 .env
+
+[步骤 5/6] 启动 AI 答题服务
+🚀 正在后台启动服务...
+⏳ 等待服务就绪...
+✅ 服务已就绪
+
+[步骤 6/6] 创建桌面快捷方式(可选)
+是否创建桌面快捷方式? (Y/N)
+</pre>
+        <p>在「是否创建桌面快捷方式」提示时,按 <code>Y</code> + 回车(推荐)。</p>
+      </div>
+
+      <div class="step">
+        <span class="step-num">4</span>
+        <h3>验证服务已启动</h3>
+        <p>打开浏览器,访问 <a href="http://127.0.0.1:5000/api/health" target="_blank">http://127.0.0.1:5000/api/health</a></p>
+        <p>如果看到 <code>{"status":"ok","models":["..."]}</code> 类似的 JSON,说明后端服务已经在跑了。</p>
+        <div class="success">✅ 看到 JSON 响应 = 后端就绪,可以进入第四阶段</div>
+        <div class="warning">⚠️ 如果看到「无法连接」,检查 cmd 窗口里有没有报错(常见是依赖装失败或端口被占)</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ========== 第四阶段 ========== -->
+    <div class="phase">
+      <div class="phase-header">
+        <span class="phase-icon">🌐</span>
+        <span class="phase-title">第四阶段：浏览器部署 <span class="time-est">2 分钟</span></span>
+      </div>
+
+      <div class="info">💡 <strong>为什么需要装扩展？</strong>OCS 网课助手是「油猴脚本」,必须装在浏览器扩展上才能运行(浏览器安全机制,程序无法自动装)。</div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <h3>打开 INSTALL.html 部署指南</h3>
+        <p>服务启动后,bat 会自动用浏览器打开 <code>INSTALL.html</code>。</p>
+        <p>如果没自动打开,双击文件夹里的 <code>INSTALL.html</code>。</p>
+        <p>这是图文并茂的 4 步指南,按它操作即可。</p>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <h3>装 Tampermonkey 扩展 <span class="check">必需</span></h3>
+        <p>在 <code>INSTALL.html</code> 里有 Chrome 应用商店直达链接。</p>
+        <a class="btn green" href="https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank">Chrome 用户点此 →</a>
+        <a class="btn green" href="https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaaobikljhlgknadcnnailhcd" target="_blank">Edge 用户点此 →</a>
+        <p>在商店页面点「<strong>添加至 Chrome/Edge</strong>」→「添加扩展」</p>
+        <p>浏览器右上角出现黑色方块图标 = 装好。</p>
+        <div class="note">💡 Edge 用户用「脚本猫」也行,步骤类似</div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <h3>装 OCS 网课助手脚本 <span class="check">必需</span></h3>
+        <a class="btn orange" href="https://docs.ocsjs.com/docs/work" target="_blank">打开 OCS 安装页 →</a>
+        <ol>
+          <li>在 OCS 官网找「<strong>开始使用</strong>」或「<strong>安装脚本</strong>」按钮</li>
+          <li>点击后浏览器会弹出油猴的安装确认窗口</li>
+          <li>点「<strong>安装</strong>」</li>
+        </ol>
+        <p>装好后,刷新任意网课平台页面(超星/学习通/智慧树等),右侧会出现 OCS 悬浮窗。</p>
+      </div>
+
+      <div class="success">✅ 出现 OCS 悬浮窗 = 浏览器端部署完成</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ========== 第五阶段 ========== -->
+    <div class="phase">
+      <div class="phase-header">
+        <span class="phase-icon">📋</span>
+        <span class="phase-title">第五阶段：导入题库配置 <span class="time-est">1 分钟</span></span>
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <h3>打开 ocs_config.json</h3>
+        <p>在 <code>OCS-AI-Answerer-一键包</code> 文件夹里,找到 <code>ocs_config.json</code></p>
+        <p>右键 → 「打开方式」→ 「记事本」</p>
+        <p>按 <code>Ctrl + A</code> 全选,按 <code>Ctrl + C</code> 复制</p>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <h3>在 OCS 悬浮窗导入 <span class="check">必需</span></h3>
+        <p>在 OCS 悬浮窗里操作：</p>
+        <ol>
+          <li>点「<strong>设置</strong>」(齿轮图标)</li>
+          <li>找到「<strong>题库配置</strong>」→ 点「<strong>配置</strong>」按钮</li>
+          <li>把刚才复制的内容粘贴进去</li>
+          <li>点「<strong>解析并保存</strong>」</li>
+        </ol>
+        <div class="success">✅ 底部出现「AI 智能答题」字样 = 导入成功</div>
+        <div class="warning">⚠️ 如果报「Spread syntax requires...」错,说明 OCS 版本太老,需要更新 OCS 脚本到最新</div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <h3>(可选)调整题库设置</h3>
+        <p>在 OCS 设置里建议调整：</p>
+        <ul>
+          <li><strong>答案匹配模式</strong>: 改成「<strong>精确匹配</strong>」(避免 "3" 误匹配 "-3")</li>
+          <li><strong>搜题最大耗时</strong>: 调到 <strong>180 秒</strong>(图片题可能需要 30-60 秒,留足余量)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ========== 第六阶段 ========== -->
+    <div class="phase">
+      <div class="phase-header">
+        <span class="phase-icon">🎓</span>
+        <span class="phase-title">第六阶段：开始答题 <span class="check">🎉</span></span>
+      </div>
+
+      <div class="step">
+        <span class="step-num">1</span>
+        <h3>登录网课平台</h3>
+        <p>在已经装了 OCS 的浏览器里,登录你的网课平台(超星/学习通/智慧树/Moodle 等)。</p>
+        <p>进入任意一个包含题目的章节。</p>
+      </div>
+
+      <div class="step">
+        <span class="step-num">2</span>
+        <h3>触发 AI 答题</h3>
+        <p>点击 OCS 悬浮窗的「<strong>开始答题</strong>」/「<strong>AI 答题</strong>」按钮。</p>
+        <p>OCS 会自动扫描当前页面所有题目,逐题调用后端 AI 服务,填入答案。</p>
+        <div class="note">💡 第一次会慢一些(图片题可能 30-60s/题),后续会快</div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">3</span>
+        <h3>查看答题结果</h3>
+        <p>页面题目会自动显示 AI 给出的答案。</p>
+        <p>可以在 <code>ocs_answers_log.csv</code> 查看所有题目的答对率、用时、使用的模型。</p>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ========== 总结 ========== -->
+    <div class="summary-box">
+      <h2>🎉 部署完成！</h2>
+      <p>整个流程你只需手动做的事：</p>
+      <ul>
+        <li>下载 + 解压 zip</li>
+        <li>注册 DeepSeek 和火山方舟,获取 2 个 Key</li>
+        <li>填入 keys.txt</li>
+        <li>双击 bat 启动</li>
+        <li>装 Tampermonkey 扩展(2 个点击)</li>
+        <li>装 OCS 脚本(1 个点击)</li>
+        <li>导入 ocs_config.json(粘贴 + 保存)</li>
+      </ul>
+      <p style="margin-top: 20px;"><strong>后续使用：双击桌面「OCS答题服务」图标即可</strong>(15-20 秒就绪)</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ========== FAQ ========== -->
+    <div class="phase">
+      <div class="phase-header">
+        <span class="phase-icon">❓</span>
+        <span class="phase-title">常见问题 FAQ</span>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Q1: 双击 bat 后,cmd 窗口一闪而过?</div>
+        <div class="faq-a">可能是编码问题。右键 bat → 编辑,把第 2 行 <code>chcp 65001</code> 改成 <code>chcp 936</code>,或者用 Windows Terminal 运行。</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Q2: 步骤 1 提示「未检测到 Python」?</div>
+        <div class="faq-a">Python 没装或者没勾「Add to PATH」。重装 Python 时务必勾上 <strong>Add Python to PATH</strong> 选项。</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Q3: 步骤 3 依赖安装失败?</div>
+        <div class="faq-a">国内网络问题。先在 cmd 运行：<br><code>pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple</code><br>再重新运行 bat。</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Q4: 步骤 4 检测不到 key?</div>
+        <div class="faq-a">检查 keys.txt 格式：<br>
+        ① 不能有空格（<code>KEY=值</code>，不是 <code>KEY = 值</code>）<br>
+        ② DeepSeek key 必须 <code>sk-</code> 开头，豆包 key 必须 <code>ark-</code> 开头<br>
+        ③ 不能有引号<br>
+        ④ 不能用中文标点</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Q5: 浏览器打开 127.0.0.1:5000 提示「无法连接」?</div>
+        <div class="faq-a">服务没起来。在 cmd 窗口里看有没有错误,或者检查 5000 端口是否被别的程序占用。</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Q6: OCS 导入题库报「Spread syntax」错?</div>
+        <div class="faq-a">OCS 脚本版本太老(低于 4.7.21)。去 OCS 官网更新脚本到最新版。</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Q7: 答题时显示「此题未完成」?</div>
+        <div class="faq-a">常见原因(按概率排序)：<br>
+        ① OCS 端用「相似匹配」→ 改成「精确匹配」<br>
+        ② 答案格式不匹配 → 单选答字母而非文字<br>
+        ③ 图片题豆包调用失败 → 检查 .env 里 key 是否有效<br>
+        ④ 超时 → OCS 设置里把题库耗时调到 60s</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Q8: 怎么添加新模型(如 Kimi)？</div>
+        <div class="faq-a">打开 <code>添加新模型教程.html</code> 里有完整步骤。或者直接告诉我「加 Kimi, key 是 xxx」,我帮你加。</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Q9: 换电脑后怎么迁移?</div>
+        <div class="faq-a">压缩整个 <code>OCS-AI-Answerer-一键包</code> 文件夹(含 venv) 拷到新电脑,改 keys.txt,双击 bat 即可。venv 目录可以删掉重新创建(小电脑空间不够时)。</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Q10: 想换个模型(如 Flash 改 Pro)？</div>
+        <div class="faq-a">打开 <code>配置教程.html</code> 里有详细步骤。或者告诉我「单选切换到 Pro」,我帮你改。</div>
+      </div>
+    </div>
+
+    <div style="text-align: center; padding: 30px; color: #999; font-size: 14px;">
+      <p>📖 教程版本 v1.0 · 2026-07-21</p>
+      <p>遇到问题随时找助手对话 📞</p>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
