@@ -1,8 +1,9 @@
 DEEPSEEK_API_KEY=sk-你的DeepSeek密钥
 DOUBAO_API_KEY=ark-你的豆包密钥
+GLM_API_KEY=你的智谱GLM-4.6V-Flash密钥
 
 # ============================================
-# 第一次使用: 把上面两行的"sk-xxx"和"ark-xxx"替换成你的真实 key
+# 第一次使用: 把上面的"sk-xxx""ark-xxx""你的xxx"替换成你的真实 key
 # 然后双击 scripts/一键启动.bat,程序会自动读取这个文件并配置
 # ============================================
 

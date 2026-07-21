@@ -113,6 +113,25 @@
       "is_builtin": true,
       "created_at": "2026-07-21T14:20:00.000000",
       "updated_at": "2026-07-21T14:20:00.000000"
+    },
+    "preset_glm_4v_flash": {
+      "name": "GLM-4.6V-Flash (免费视觉)",
+      "provider": "openai",
+      "api_key": "${GLM_API_KEY}",
+      "base_url": "https://open.bigmodel.cn/api/paas/v4/",
+      "model_name": "glm-4.6v-flash",
+      "is_multimodal": true,
+      "max_tokens": 4096,
+      "temperature": 0.1,
+      "top_p": 0.95,
+      "supports_reasoning": true,
+      "reasoning_param_name": "reasoning_effort",
+      "reasoning_param_value": "medium",
+      "api_protocol": "openai_compat",
+      "enabled": true,
+      "is_builtin": true,
+      "created_at": "2026-07-21T17:30:00.000000",
+      "updated_at": "2026-07-21T17:30:00.000000"
     }
   },
   "metadata": {
@@ -151,6 +170,7 @@
     },
     "image": {
       "models": [
+        "preset_glm_4v_flash",
         "preset_doubao_mini",
         "preset_doubao_turbo",
         "preset_doubao_pro",

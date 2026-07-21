@@ -69,15 +69,19 @@ DOUBAO_API_KEY = os.getenv('DOUBAO_API_KEY', '')
 DOUBAO_BASE_URL = os.getenv('DOUBAO_BASE_URL', 'https://ark.cn-beijing.volces.com/api/v3')
 DOUBAO_MODEL = os.getenv('DOUBAO_MODEL', 'doubao-seed-1-6-251015')
 
+GLM_API_KEY = os.getenv('GLM_API_KEY', '')
+
 # -------------------- 内置预设配置 --------------------
-BUILTIN_PRESET_BOOTSTRAP_VERSION = 1
+BUILTIN_PRESET_BOOTSTRAP_VERSION = 2
 PRESET_DEEPSEEK_V4_FLASH = 'preset_deepseek_v4_flash'
 PRESET_DEEPSEEK_V4_PRO = 'preset_deepseek_v4_pro'
 PRESET_DOUBAO = 'preset_doubao'
+PRESET_GLM_4V_FLASH = 'preset_glm_4v_flash'
 BUILTIN_PRESET_IDS = (
     PRESET_DEEPSEEK_V4_FLASH,
     PRESET_DEEPSEEK_V4_PRO,
     PRESET_DOUBAO,
+    PRESET_GLM_4V_FLASH,
 )
 LEGACY_PRESET_ID_MAP = {
     'system_deepseek': PRESET_DEEPSEEK_V4_FLASH,
@@ -461,12 +465,16 @@ class CustomModelManager:
                         env_name = 'DEEPSEEK_API_KEY'
                     elif 'doubao' in mid.lower():
                         env_name = 'DOUBAO_API_KEY'
+                    elif 'glm' in mid.lower():
+                        env_name = 'GLM_API_KEY'
                     # 如果没匹配到,根据 base_url 猜
                     if not env_name and isinstance(mcfg.get('base_url'), str):
                         if 'deepseek' in mcfg['base_url']:
                             env_name = 'DEEPSEEK_API_KEY'
                         elif 'volces' in mcfg['base_url']:
                             env_name = 'DOUBAO_API_KEY'
+                        elif 'bigmodel' in mcfg['base_url']:
+                            env_name = 'GLM_API_KEY'
                     if env_name and os.getenv(env_name):
                         mcfg_copy['api_key'] = '${' + env_name + '}'
                 safe_models[mid] = mcfg_copy
@@ -917,6 +925,25 @@ def build_builtin_preset_config(
             'enabled': bool(api_key),
             'is_builtin': True
         }
+    elif preset_id == PRESET_GLM_4V_FLASH:
+        api_key = source_config.get('api_key', GLM_API_KEY)
+        config = {
+            'name': 'GLM-4.6V-Flash (免费视觉)',
+            'provider': 'openai',
+            'api_key': api_key,
+            'base_url': source_config.get('base_url', 'https://open.bigmodel.cn/api/paas/v4/'),
+            'model_name': 'glm-4.6v-flash',
+            'is_multimodal': True,
+            'max_tokens': source_config.get('max_tokens', 4096),
+            'temperature': source_config.get('temperature', TEMPERATURE),
+            'top_p': source_config.get('top_p', TOP_P),
+            'supports_reasoning': True,
+            'reasoning_param_name': 'reasoning_effort',
+            'reasoning_param_value': REASONING_EFFORT,
+            'api_protocol': source_config.get('api_protocol', MODEL_API_COMPAT_OPENAI),
+            'enabled': bool(api_key),
+            'is_builtin': True
+        }
     else:
         api_key = source_config.get('api_key', DOUBAO_API_KEY)
         config = {
@@ -965,7 +992,8 @@ def bootstrap_builtin_presets():
             or legacy_models.get('system_deepseek_chat')
             or legacy_models.get('system_deepseek')
         ),
-        PRESET_DOUBAO: legacy_models.get('system_doubao')
+        PRESET_DOUBAO: legacy_models.get('system_doubao'),
+        PRESET_GLM_4V_FLASH: None
     }
 
     for preset_id in BUILTIN_PRESET_IDS:
@@ -1000,7 +1028,7 @@ def bootstrap_builtin_presets():
         'multiple': [PRESET_DEEPSEEK_V4_PRO, PRESET_DEEPSEEK_V4_FLASH],
         'judgement': [PRESET_DEEPSEEK_V4_PRO, PRESET_DEEPSEEK_V4_FLASH],
         'completion': [PRESET_DEEPSEEK_V4_PRO, PRESET_DEEPSEEK_V4_FLASH],
-        'image': [PRESET_DOUBAO]
+        'image': [PRESET_GLM_4V_FLASH, PRESET_DOUBAO]
     }
 
     for question_type, default_ids in default_mappings.items():
@@ -4280,56 +4308,37 @@ if __name__ == '__main__':
     model_info = f"已配置模型 {runtime.get('model_count', 0)} 个 / 已启用 {runtime.get('enabled_model_count', 0)} 个"
     model_detail = f"可答题型: {ready_types}"
     
-    print(f"""
-    ╔═══════════════════════════════════════════════════════════╗
-    ║       OCS智能答题API服务 - 多模型支持版本 v3.0              ║
-    ╠═══════════════════════════════════════════════════════════╣
-    ║  � Vue3 前端: http://{HOST}:{PORT}/                    
-    ║  📊 数据可视化: http://{HOST}:{PORT}/viewer             
-    ║  📖 API文档: http://{HOST}:{PORT}/docs                  
-    ╠═══════════════════════════════════════════════════════════╣
-    ║  接口地址: http://{HOST}:{PORT}/api/answer              
-    ║  健康检查: http://{HOST}:{PORT}/api/health              
-    ║  配置查询: http://{HOST}:{PORT}/api/config              
-    ║  CSV数据: http://{HOST}:{PORT}/api/csv                  
-    ║  延迟测试: http://{HOST}:{PORT}/?t=时间戳 (HEAD/GET)    
-    ╠═══════════════════════════════════════════════════════════╣
-    ║  当前模式: {model_info:<48s}║
-    ║  {'  ' + model_detail if model_detail else '':<60s}║
-    ║  思考模式: {'✅ 已启用' if ENABLE_REASONING else '❌ 未启用':<40s}║
-    ║  多选题思考: {'✅ 自动启用' if AUTO_REASONING_FOR_MULTIPLE else '❌ 关闭':<38s}║
-    ║  图片题思考: {'✅ 自动启用' if AUTO_REASONING_FOR_IMAGES else '❌ 关闭':<38s}║
-    ║  支持题型: 单选、多选、判断、填空                        ║
-    ╠═══════════════════════════════════════════════════════════╣
-    ║  💡 旧版HTML: http://{HOST}:{PORT}/config_legacy         
-    ╚═══════════════════════════════════════════════════════════╝
-    """)
+    try:
+        print(f"""
+        OCS智能答题API服务 - 多模型支持版本 v3.0
+        Vue3 前端: http://{HOST}:{PORT}/
+        数据可视化: http://{HOST}:{PORT}/viewer
+        API文档: http://{HOST}:{PORT}/docs
+        接口地址: http://{HOST}:{PORT}/api/answer
+        健康检查: http://{HOST}:{PORT}/api/health
+        配置查询: http://{HOST}:{PORT}/api/config
+        CSV数据: http://{HOST}:{PORT}/api/csv
+        当前模式: {model_info}
+        {model_detail if model_detail else ''}
+        思考模式: {'已启用' if ENABLE_REASONING else '未启用'}
+        支持题型: 单选、多选、判断、填空
+        旧版HTML: http://{HOST}:{PORT}/config_legacy
+        """)
+    except UnicodeEncodeError:
+        pass
     
     if not runtime.get('can_answer_any'):
-        print("\n" + "="*80)
-        print("❌ 当前没有可用的答题模型")
-        if runtime.get('init_error'):
-            print(f"错误信息: {runtime.get('init_error')}")
-        print("\n💡 解决方案:")
-        print("   1. 打开 Web 模型管理页面")
-        print("   2. 为内置预设或自定义模型填写 API 密钥")
-        print("   3. 启用至少一个模型")
-        print("   4. 为题型设置模型映射（图片题需要多模态模型）")
-        print("="*80 + "\n")
+        try:
+            print("当前没有可用的答题模型")
+            if runtime.get('init_error'):
+                print(f"错误信息: {runtime.get('init_error')}")
+            print("请前往 Web 管理页面配置 API 密钥")
+        except UnicodeEncodeError:
+            pass
     else:
-        print("✅ 服务启动成功！\n")
-        print("💡 当前状态:")
-        print(f"   🔧 已配置模型: {runtime.get('model_count', 0)}")
-        print(f"   ✅ 已启用模型: {runtime.get('enabled_model_count', 0)}")
-        print(f"   📝 可答题型: {ready_types}")
-        print(f"   🖼️  多模态模型: {'已配置' if runtime.get('has_multimodal_model') else '未配置'}\n")
-    
-    # 检查前端是否已构建
-    dist_dir = os.path.join(os.path.dirname(__file__), 'dist')
-    if not os.path.exists(dist_dir):
-        print("⚠️  警告: 前端应用未构建")
-        print("   访问 Web 界面需要先构建前端：")
-        print("   执行: build_frontend.bat")
-        print("   或访问旧版界面: http://{}:{}/config_legacy\n".format(HOST, PORT))
+        try:
+            print(f"服务启动成功！已配置模型 {runtime.get('model_count', 0)} 个, 可答题型: {ready_types}")
+        except UnicodeEncodeError:
+            pass
     
     app.run(host=HOST, port=PORT, debug=DEBUG)
