@@ -496,9 +496,9 @@ DASHSCOPE_API_KEY=你的阿里百炼DashScope密钥
           <tr style="background:#f5f5f5;"><th style="padding:6px 10px;border:1px solid #ddd;">脚本</th><th style="padding:6px 10px;border:1px solid #ddd;">作用</th></tr>
           <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>启动服务.vbs</code></td><td style="padding:6px 10px;border:1px solid #ddd;">后台静默启动，无黑窗口。双击即运行答题服务</td></tr>
           <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>停止服务.bat</code></td><td style="padding:6px 10px;border:1px solid #ddd;">停止答题服务 + 后台守护程序</td></tr>
-          <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>启动守护.vbs</code></td><td style="padding:6px 10px;border:1px solid #ddd;"><strong>推荐</strong> — 自动模式。后台检测浏览器，打开浏览器时自动启动服务，关闭浏览器约90秒后自动停止，完全不用手动管</td></tr>
+          <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>启动守护.vbs</code></td><td style="padding:6px 10px;border:1px solid #ddd;"><strong>推荐</strong> — 全自动模式。后台检测浏览器标签页，检测到<strong>超星/学习通/智慧树</strong>时自动启动服务，关闭页面约90秒后自动停止，完全不用手动管</td></tr>
         </table>
-        <div class="note">💡 <strong>日常使用建议：</strong>首次配置好 key 后，以后只需要双击 <code>启动守护.vbs</code> 就行。它会一直在后台（几乎不占 CPU），你正常打开浏览器学习，服务自动跟着启停。</div>
+        <div class="note">💡 <strong>日常使用建议：</strong>首次配置好 key 后，以后只需要双击 <code>启动守护.vbs</code> 就行。它会在后台一直运行（几乎不占 CPU），当你打开超星/学习通页面时自动启动答题服务，关闭页面后自动停止，完全不用手动操作。</div>
       </div>
     </div>
 
