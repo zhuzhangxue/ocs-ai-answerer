@@ -214,6 +214,14 @@
 
   <div class="content">
 
+    <div class="info" style="background:#fff7e6; border-left:4px solid #fa8c16; padding:16px 20px; margin-bottom:20px; border-radius:8px; font-size:15px;">
+      <strong>📌 新手快速指引</strong><br>
+      • 启动文件在 <code>scripts/一键启动.bat</code>（双击它就能启动服务）<br>
+      • 教程在 <code>docs/</code> 文件夹里（有3个HTML教程，双击就能看）<br>
+      • 配 Key 只需要改 <code>keys.txt</code>（DeepSeek + 豆包 必配，GLM 和 Qwen 可选）<br>
+      • 遇到问题先看本页底部的 <strong>FAQ</strong>
+    </div>
+
     <div class="toc">
       <h2>📋 目录</h2>
       <ol>
@@ -252,7 +260,7 @@
 
       <div class="step">
         <span class="step-num">3</span>
-        <h3>查看文件夹内容</h3>
+        <h3>查看文件夹内容 <span class="check">认识文件位置</span></h3>
         <p>打开解压后的文件夹，应该看到这样的目录结构：</p>
 <pre>
 OCS-AI-Answerer-一键包/
@@ -264,14 +272,16 @@ OCS-AI-Answerer-一键包/
 ├── config_panel.html                 配置面板(备用)
 ├── env.template                      环境变量模板
 ├── README.md                         项目说明
-├── docs/
-│   ├── INSTALL.html                  📖 浏览器部署指南
-│   ├── 使用教程.html                 📖 本文件
+├── docs/                              📖 教程文件夹
+│   ├── 使用教程.html                 📖 本文件(你现在看的)
 │   ├── 配置教程.html                 📖 改模型配置教程
 │   └── 添加新模型教程.html           📖 接入新模型教程
-└── scripts/
+└── scripts/                           ⚡ 启动脚本文件夹
     └── 一键启动.bat                  ⭐ 核心文件,稍后双击它
 </pre>
+        <div class="info">💡 <strong>记住两个位置：</strong><br>
+        • 启动文件在 <code>scripts/一键启动.bat</code>（稍后要双击它）<br>
+        • 教程在 <code>docs/</code> 文件夹里（有3个HTML教程，双击就能看）</div>
         <div class="success">✅ 文件齐全,可以进入第二阶段</div>
       </div>
     </div>
@@ -285,12 +295,12 @@ OCS-AI-Answerer-一键包/
         <span class="phase-title">第二阶段：获取 API Key <span class="time-est">3 分钟</span></span>
       </div>
 
-      <div class="info">💡 <strong>什么是 API Key？</strong>它是你调用 AI 大模型的"通行证"。本项目用三个：DeepSeek（推理大脑）+ 智谱 GLM（免费视觉，首选）+ 豆包（视觉降级）。</div>
+      <div class="info">💡 <strong>什么是 API Key？</strong>它是你调用 AI 大模型的"通行证"。按需求配置，<strong>DeepSeek 和豆包是核心必配</strong>，GLM 和 Qwen 是图片题的降级补充，可跳过。</div>
 
       <div class="step">
         <span class="step-num">1</span>
-        <h3>注册 DeepSeek 并获取 Key <span class="check">必需</span></h3>
-        <p>DeepSeek 负责"思考答题"，是整个项目的大脑。</p>
+        <h3>注册 DeepSeek 并获取 Key <span class="check" style="background:#f5222d">必配</span></h3>
+        <p>DeepSeek 负责"思考答题"，是整个项目的大脑，<strong>必须配置</strong>。</p>
         <a class="btn" href="https://platform.deepseek.com/" target="_blank">打开 DeepSeek 平台 →</a>
         <ol>
           <li>点击右上角「注册」(支持手机号/微信)</li>
@@ -304,8 +314,8 @@ OCS-AI-Answerer-一键包/
 
       <div class="step">
         <span class="step-num">2</span>
-        <h3>注册智谱并获取 GLM Key <span class="check">推荐</span></h3>
-        <p>GLM-4.6V-Flash 是<strong>免费</strong>的图像理解模型，作为识图首选模型。失败时会自动降级到豆包。</p>
+        <h3>注册智谱并获取 GLM Key <span class="check" style="background:#fa8c16">可选</span></h3>
+        <p>GLM-4.6V-Flash 是<strong>免费</strong>的图像理解模型，作为识图首选模型。失败时会自动降级到豆包。<strong>不配也可以，图片题会自动用豆包</strong>。</p>
         <a class="btn" href="https://bigmodel.cn/" target="_blank">打开智谱 AI 开放平台 →</a>
         <ol>
           <li>用手机号注册登录</li>
@@ -318,8 +328,8 @@ OCS-AI-Answerer-一键包/
 
       <div class="step">
         <span class="step-num">3</span>
-        <h3>注册火山方舟并获取豆包 Key <span class="check">必需</span></h3>
-        <p>豆包负责"看图认字"(OCR),用火山方舟平台调用。</p>
+        <h3>注册火山方舟并获取豆包 Key <span class="check" style="background:#f5222d">必配</span></h3>
+        <p>豆包负责"看图认字"(OCR)，图片题必须依赖它，<strong>必须配置</strong>。</p>
         <a class="btn" href="https://console.volcengine.com/ark" target="_blank">打开火山方舟 →</a>
         <ol>
           <li>用抖音/手机号注册登录</li>
@@ -330,11 +340,26 @@ OCS-AI-Answerer-一键包/
           <li>勾选所有模型权限 → 创建</li>
           <li><strong>立即复制</strong>Key(形如 <code>ark-xxxxxxxx-xxxxxxxx-xxxxxxxx</code>)</li>
         </ol>
-        <div class="note">💰 <strong>费用</strong>: 豆包 seed 系列<strong>有大量免费额度</strong>,基本不花钱</div>
+        <div class="note">💰 <strong>费用</strong>: 豆包 seed 系列为<strong>付费 API</strong>，有试用额度，非永久免费。超额后按量计费。</div>
       </div>
 
       <div class="step">
         <span class="step-num">4</span>
+        <h3>注册阿里百炼并获取 Qwen Key <span class="check" style="background:#d9d9d9;color:#666">可跳过</span></h3>
+        <p>Qwen VL Flash / Qwen3.7-Plus 是通义千问视觉模型，在云端降级链最末端。不配完全不影响使用，<strong>建议跳过</strong>。</p>
+        <a class="btn" href="https://help.aliyun.com/zh/model-studio/getting-started/get-api-key" target="_blank">查看百炼文档 →</a>
+        <ol>
+          <li>用阿里云/支付宝账号登录</li>
+          <li>进入模型广场 → 开通 Qwen VL Flash</li>
+          <li>创建「<strong>API Key</strong>」（DashScope API Key）</li>
+          <li>获取「<strong>工作空间 Base URL</strong>」（百炼平台 > 模型调用 > OpenAI 兼容地址，每个用户不同，包含工作空间 ID）</li>
+        </ol>
+        <div class="warning">⚠️ QWEN_BASE_URL 不是固定的 https://dashscope.aliyuncs.com/compatible-mode/v1，必须在百炼控制台获取您工作空间专属的地址。</div>
+        <div class="note">💰 <strong>费用</strong>: Qwen VL Flash 和 3.7-Plus 均为<strong>付费 API</strong>，有试用额度。</div>
+      </div>
+
+      <div class="step">
+        <span class="step-num">5</span>
         <h3>在豆包平台开通模型 <span class="check">必需</span></h3>
         <p>开通模型后才能调用,操作是免费的。提供<strong>两种方式</strong>,选一种即可：</p>
 
@@ -378,14 +403,17 @@ OCS-AI-Answerer-一键包/
         <h3>填入 keys.txt <span class="check">关键</span></h3>
         <p>在 <code>OCS-AI-Answerer-一键包</code> 文件夹里,找到 <code>keys.txt</code></p>
         <p>右键 → 「打开方式」→ 「记事本」</p>
-        <p>把里面的占位符替换成你的真实 key：</p>
+        <p>把里面的占位符替换成你的真实 key（GLM 和 DASHSCOPE 可跳过不配）：</p>
 <pre>
 # 改成你的真实 key（删除 <> 部分,只保留 key 本身）
-DEEPSEEK_API_KEY=sk-你刚才复制的 DeepSeek key
-DOUBAO_API_KEY=ark-你刚才复制的火山方舟 key
+DEEPSEEK_API_KEY=sk-你刚才复制的 DeepSeek key    ← 必配
+DOUBAO_API_KEY=ark-你刚才复制的火山方舟 key      ← 必配
+GLM_API_KEY=你复制的智谱 GLM key                 ← 可选(图片题免费降级,不配也行)
+DASHSCOPE_API_KEY=你的阿里百炼 DashScope key     ← 可选(基本用不到,建议跳过)
 </pre>
         <p>按 <code>Ctrl + S</code> 保存,关闭记事本。</p>
-        <div class="warning">⚠️ 格式必须保持 <code>KEY=值</code> 中间不要有空格、不要加引号、不要有空行</div>
+        <div class="warning">⚠️ 格式必须保持 <code>KEY=值</code> 中间不要有空格、不要加引号</div>
+        <div class="info">💡 <strong>不配 GLM 和 Qwen 会怎样？</strong> 完全不影响文字题答题。图片题会跳过不可用的模型，自动用豆包处理。建议先只配 DeepSeek + 豆包，跑通后再补 GLM。</div>
       </div>
 
       <div class="screenshot">
@@ -393,15 +421,18 @@ DOUBAO_API_KEY=ark-你刚才复制的火山方舟 key
         <pre style="text-align:left; display:inline-block;">
 DEEPSEEK_API_KEY=sk-你的真实key
 DOUBAO_API_KEY=ark-你的真实key
+GLM_API_KEY=你的智谱GLM-4.6V-Flash密钥
+DASHSCOPE_API_KEY=你的阿里百炼DashScope密钥
         </pre>
       </div>
 
       <div class="step">
         <span class="step-num">2</span>
-        <h3>双击「scripts/一键启动.bat」 <span class="check">启动</span></h3>
-        <p>进入 <code>scripts</code> 文件夹,双击 <code>一键启动.bat</code>。</p>
+        <h3>双击启动一键启动.bat <span class="check">启动</span></h3>
+        <p>打开 <code>scripts</code> 文件夹，找到 <code>一键启动.bat</code>，<strong>双击</strong>它。</p>
+        <p>（如果找不到，回到项目根目录，进入 <code>scripts/</code> 文件夹就能看到）</p>
         <p>会弹出一个黑色 cmd 窗口,显示 6 步进度。</p>
-        <div class="note">💡 <strong>不要关闭这个黑窗口</strong>(除非服务启动完成)</div>
+        <div class="note">💡 <strong>不要关闭这个黑窗口</strong>(服务启动后它会一直开着,最小化到任务栏就行)</div>
       </div>
 
       <div class="step">
@@ -462,16 +493,15 @@ DOUBAO_API_KEY=ark-你的真实key
 
       <div class="step">
         <span class="step-num">1</span>
-        <h3>打开 docs/INSTALL.html 部署指南</h3>
-        <p>服务启动后,bat 会自动用浏览器打开 <code>docs/INSTALL.html</code>。</p>
-        <p>如果没自动打开,双击 <code>docs/INSTALL.html</code>。</p>
-        <p>这是图文并茂的 4 步指南,按它操作即可。</p>
+        <h3>安装油猴脚本 Tampermonkey</h3>
+        <p>OCS 网课助手是油猴脚本,需要先装 Tampermonkey 浏览器扩展。</p>
+        <p>按下面步骤操作即可。</p>
       </div>
 
       <div class="step">
         <span class="step-num">2</span>
         <h3>装 Tampermonkey 扩展 <span class="check">必需</span></h3>
-        <p>在 <code>docs/INSTALL.html</code> 里有 Chrome 应用商店直达链接。</p>
+        <p>点击下方按钮直达 Chrome 应用商店。</p>
         <a class="btn green" href="https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank">Chrome 用户点此 →</a>
         <a class="btn green" href="https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaaobikljhlgknadcnnailhcd" target="_blank">Edge 用户点此 →</a>
         <p>在商店页面点「<strong>添加至 Chrome/Edge</strong>」→「添加扩展」</p>

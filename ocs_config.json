@@ -15,6 +15,6 @@
       "type": "${type}",
       "images": []
     },
-    "handler": "return (res)=>res.success && res.ocs_format ? [res.ocs_format] : []"
+    "handler": "return (res)=>{if(res.ocs_format_multi)return res.ocs_format_multi;return res.success&&res.ocs_format?[res.ocs_format]:[];}"
   }
 ]

@@ -1,3 +1,0 @@
-# Don't touch .bat line endings - cmd.exe requires CRLF
-*.bat binary
-scripts/*.bat binary

@@ -32,6 +32,7 @@ OCS脚本智能答题API - 多模型支持版本
 
 # ==================== 标准库导入 ====================
 import os
+import sys
 import re
 import time
 import csv
@@ -53,6 +54,12 @@ from flask_cors import CORS
 from openai import OpenAI
 from dotenv import load_dotenv
 
+# Windows GBK 控制台修正：设置 UTF-8 编码避免 emoji 输出崩溃
+if os.name == 'nt':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 # 加载环境变量
 load_dotenv()
 
@@ -71,16 +78,26 @@ DOUBAO_MODEL = os.getenv('DOUBAO_MODEL', 'doubao-seed-1-6-251015')
 
 GLM_API_KEY = os.getenv('GLM_API_KEY', '')
 
+DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY', '')
+QWEN_BASE_URL = os.getenv('QWEN_BASE_URL', '')
+QWEN_VL_FLASH_MODEL = os.getenv('QWEN_VL_FLASH_MODEL', 'qwen-vl-flash')
+QWEN_3_7_PLUS_MODEL = os.getenv('QWEN_3_7_PLUS_MODEL', 'qwen3.7-plus')
+
 # -------------------- 内置预设配置 --------------------
-BUILTIN_PRESET_BOOTSTRAP_VERSION = 2
+BUILTIN_PRESET_BOOTSTRAP_VERSION = 3
 PRESET_DEEPSEEK_V4_FLASH = 'preset_deepseek_v4_flash'
 PRESET_DEEPSEEK_V4_PRO = 'preset_deepseek_v4_pro'
 PRESET_GLM_4V_FLASH = 'preset_glm_4v_flash'
 PRESET_DOUBAO_MINI = 'preset_doubao_mini'
+PRESET_DOUBAO_2_1_PRO = 'preset_doubao_2_1_pro'
+PRESET_QWEN_VL_FLASH = 'preset_qwen_vl_flash'
+PRESET_QWEN_3_7_PLUS = 'preset_qwen_3_7_plus'
 BUILTIN_PRESET_IDS = (
     PRESET_DEEPSEEK_V4_FLASH,
     PRESET_DEEPSEEK_V4_PRO,
     PRESET_GLM_4V_FLASH,
+    PRESET_QWEN_VL_FLASH,
+    PRESET_QWEN_3_7_PLUS,
 )
 LEGACY_PRESET_ID_MAP = {
     'system_deepseek': PRESET_DEEPSEEK_V4_FLASH,
@@ -113,6 +130,16 @@ REASONING_MAX_TOKENS = max(1, min(65536, REASONING_MAX_TOKENS_RAW))  # 限制到
 
 TOP_P = float(os.getenv('TOP_P', '0.95'))
 
+# -------------------- 本地 OCR 配置 --------------------
+ENABLE_LOCAL_OCR = os.getenv('ENABLE_LOCAL_OCR', 'true').lower() == 'true'
+OCR_TEXT_MIN_CHARS = int(os.getenv('OCR_TEXT_MIN_CHARS', '12'))
+OCR_MIN_CONFIDENCE = float(os.getenv('OCR_MIN_CONFIDENCE', '0.75'))
+OCR_MIN_LINES = int(os.getenv('OCR_MIN_LINES', '2'))
+OCR_CPU_THREADS = int(os.getenv('OCR_CPU_THREADS', '2'))
+
+# -------------------- GLM 熔断配置 --------------------
+GLM_CIRCUIT_BREAK_SECONDS = int(os.getenv('GLM_CIRCUIT_BREAK_SECONDS', '300'))
+
 # -------------------- 网络配置 --------------------
 # 支持HTTP代理、超时控制和自动重试
 HTTP_PROXY = os.getenv('HTTP_PROXY', '')
@@ -140,6 +167,12 @@ CONFIG_EDITABLE_KEYS = (
     'MAX_TOKENS',
     'REASONING_MAX_TOKENS',
     'TOP_P',
+    'ENABLE_LOCAL_OCR',
+    'OCR_TEXT_MIN_CHARS',
+    'OCR_MIN_CONFIDENCE',
+    'OCR_MIN_LINES',
+    'OCR_CPU_THREADS',
+    'GLM_CIRCUIT_BREAK_SECONDS',
     'HTTP_PROXY',
     'HTTPS_PROXY',
     'TIMEOUT',
@@ -183,6 +216,7 @@ QUESTION_TYPE_JUDGEMENT = 'judgement'
 # 模型提供商常量
 PROVIDER_DEEPSEEK = 'deepseek'
 PROVIDER_DOUBAO = 'doubao'
+PROVIDER_QWEN = 'qwen'
 
 # 配置日志（必须在SecurityManager之前初始化）
 logging.basicConfig(
@@ -190,6 +224,13 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# 根据 .env 中的 LOG_LEVEL 立即调整日志级别
+_log_level_name = os.getenv('LOG_LEVEL', 'INFO').upper()
+_log_level = getattr(logging, _log_level_name, logging.INFO)
+logging.getLogger().setLevel(_log_level)
+if _log_level != logging.INFO:
+    print(f"  日志级别: {_log_level_name}")
 REQUEST_TRACE_LOG_FILE = os.getenv('REQUEST_TRACE_LOG_FILE', 'ocs_request_trace.log')
 
 
@@ -318,6 +359,8 @@ def reload_runtime_config():
     global AUTO_REASONING_FOR_MULTIPLE, AUTO_REASONING_FOR_IMAGES
     global TEMPERATURE, MAX_TOKENS_RAW, MAX_TOKENS
     global REASONING_MAX_TOKENS_RAW, REASONING_MAX_TOKENS, TOP_P
+    global ENABLE_LOCAL_OCR, OCR_TEXT_MIN_CHARS, OCR_MIN_CONFIDENCE, OCR_MIN_LINES, OCR_CPU_THREADS
+    global GLM_CIRCUIT_BREAK_SECONDS
     global HTTP_PROXY, HTTPS_PROXY, TIMEOUT, MAX_RETRIES
 
     try:
@@ -332,6 +375,13 @@ def reload_runtime_config():
         REASONING_MAX_TOKENS_RAW = int(os.getenv('REASONING_MAX_TOKENS', '4096'))
         REASONING_MAX_TOKENS = max(1, min(65536, REASONING_MAX_TOKENS_RAW))
         TOP_P = float(os.getenv('TOP_P', '0.95'))
+
+        ENABLE_LOCAL_OCR = os.getenv('ENABLE_LOCAL_OCR', 'true').lower() == 'true'
+        OCR_TEXT_MIN_CHARS = int(os.getenv('OCR_TEXT_MIN_CHARS', '12'))
+        OCR_MIN_CONFIDENCE = float(os.getenv('OCR_MIN_CONFIDENCE', '0.75'))
+        OCR_MIN_LINES = int(os.getenv('OCR_MIN_LINES', '2'))
+        OCR_CPU_THREADS = int(os.getenv('OCR_CPU_THREADS', '2'))
+        GLM_CIRCUIT_BREAK_SECONDS = int(os.getenv('GLM_CIRCUIT_BREAK_SECONDS', '300'))
 
         HTTP_PROXY = os.getenv('HTTP_PROXY', '')
         HTTPS_PROXY = os.getenv('HTTPS_PROXY', '')
@@ -465,6 +515,8 @@ class CustomModelManager:
                         env_name = 'DOUBAO_API_KEY'
                     elif 'glm' in mid.lower():
                         env_name = 'GLM_API_KEY'
+                    elif 'qwen' in mid.lower():
+                        env_name = 'DASHSCOPE_API_KEY'
                     # 如果没匹配到,根据 base_url 猜
                     if not env_name and isinstance(mcfg.get('base_url'), str):
                         if 'deepseek' in mcfg['base_url']:
@@ -473,6 +525,8 @@ class CustomModelManager:
                             env_name = 'DOUBAO_API_KEY'
                         elif 'bigmodel' in mcfg['base_url']:
                             env_name = 'GLM_API_KEY'
+                        elif 'dashscope' in mcfg['base_url'] or 'aliyuncs' in mcfg['base_url']:
+                            env_name = 'DASHSCOPE_API_KEY'
                     if env_name and os.getenv(env_name):
                         mcfg_copy['api_key'] = '${' + env_name + '}'
                 safe_models[mid] = mcfg_copy
@@ -607,7 +661,7 @@ class CustomModelManager:
                 self.question_type_models[question_type]['models'] = sanitized_models
 
         return changed
-    
+
     def add_model(self, model_id: str, model_config: Dict[str, Any]) -> Tuple[bool, str]:
         """
         添加自定义模型
@@ -942,6 +996,44 @@ def build_builtin_preset_config(
             'enabled': bool(api_key),
             'is_builtin': True
         }
+    elif preset_id == PRESET_QWEN_VL_FLASH:
+        api_key = source_config.get('api_key', DASHSCOPE_API_KEY)
+        config = {
+            'name': 'Qwen VL Flash (视觉)',
+            'provider': 'openai',
+            'api_key': api_key,
+            'base_url': source_config.get('base_url', QWEN_BASE_URL),
+            'model_name': source_config.get('model_name', QWEN_VL_FLASH_MODEL),
+            'is_multimodal': True,
+            'max_tokens': 4096,
+            'temperature': source_config.get('temperature', TEMPERATURE),
+            'top_p': source_config.get('top_p', TOP_P),
+            'supports_reasoning': False,
+            'reasoning_param_name': 'enable_thinking',
+            'reasoning_param_value': 'false',
+            'api_protocol': source_config.get('api_protocol', MODEL_API_COMPAT_OPENAI),
+            'enabled': bool(api_key) and bool(source_config.get('base_url', QWEN_BASE_URL)),
+            'is_builtin': True
+        }
+    elif preset_id == PRESET_QWEN_3_7_PLUS:
+        api_key = source_config.get('api_key', DASHSCOPE_API_KEY)
+        config = {
+            'name': 'Qwen3.7-Plus (视觉)',
+            'provider': 'openai',
+            'api_key': api_key,
+            'base_url': source_config.get('base_url', QWEN_BASE_URL),
+            'model_name': source_config.get('model_name', QWEN_3_7_PLUS_MODEL),
+            'is_multimodal': True,
+            'max_tokens': 8192,
+            'temperature': source_config.get('temperature', TEMPERATURE),
+            'top_p': source_config.get('top_p', TOP_P),
+            'supports_reasoning': True,
+            'reasoning_param_name': 'enable_thinking',
+            'reasoning_param_value': 'false',
+            'api_protocol': source_config.get('api_protocol', MODEL_API_COMPAT_OPENAI),
+            'enabled': bool(api_key) and bool(source_config.get('base_url', QWEN_BASE_URL)),
+            'is_builtin': True
+        }
     else:
         api_key = source_config.get('api_key', DOUBAO_API_KEY)
         config = {
@@ -980,6 +1072,7 @@ def bootstrap_builtin_presets():
             legacy_models[legacy_id] = legacy_config
             changed = True
 
+    qwen_source_config = {'api_key': DASHSCOPE_API_KEY, 'base_url': QWEN_BASE_URL}
     preset_sources = {
         PRESET_DEEPSEEK_V4_FLASH: (
             legacy_models.get('system_deepseek_chat')
@@ -990,7 +1083,9 @@ def bootstrap_builtin_presets():
             or legacy_models.get('system_deepseek_chat')
             or legacy_models.get('system_deepseek')
         ),
-        PRESET_GLM_4V_FLASH: None
+        PRESET_GLM_4V_FLASH: None,
+        PRESET_QWEN_VL_FLASH: qwen_source_config,
+        PRESET_QWEN_3_7_PLUS: qwen_source_config,
     }
 
     for preset_id in BUILTIN_PRESET_IDS:
@@ -1025,7 +1120,7 @@ def bootstrap_builtin_presets():
         'multiple': [PRESET_DEEPSEEK_V4_PRO, PRESET_DEEPSEEK_V4_FLASH],
         'judgement': [PRESET_DEEPSEEK_V4_PRO, PRESET_DEEPSEEK_V4_FLASH],
         'completion': [PRESET_DEEPSEEK_V4_PRO, PRESET_DEEPSEEK_V4_FLASH],
-        'image': [PRESET_GLM_4V_FLASH, PRESET_DOUBAO_MINI]
+        'image': [PRESET_GLM_4V_FLASH, PRESET_DOUBAO_MINI, PRESET_QWEN_VL_FLASH, PRESET_QWEN_3_7_PLUS, PRESET_DOUBAO_2_1_PRO]
     }
 
     for question_type, default_ids in default_mappings.items():
@@ -1228,6 +1323,141 @@ class SecurityManager:
         """清除失败记录（认证成功后调用）"""
         if ip in self.failed_attempts:
             del self.failed_attempts[ip]
+
+# ==================== 模型熔断器 ====================
+
+class ModelCircuitBreaker:
+    """按模型记录的内存熔断器，防止重复调用已失败的付费模型。"""
+
+    def __init__(self):
+        self._break_until: Dict[str, float] = {}
+
+    def record_failure(self, model_id: str):
+        """记录模型调用失败，触发熔断。"""
+        self._break_until[model_id] = time.time() + GLM_CIRCUIT_BREAK_SECONDS
+        logger.warning(f"🔴 熔断器触发: {model_id}，熔断 {GLM_CIRCUIT_BREAK_SECONDS} 秒")
+
+    def is_broken(self, model_id: str) -> bool:
+        """检查模型是否处于熔断状态。"""
+        expiry = self._break_until.get(model_id)
+        if expiry is None:
+            return False
+        if time.time() >= expiry:
+            del self._break_until[model_id]
+            logger.info(f"🟢 熔断已恢复: {model_id}")
+            return False
+        remaining = int(expiry - time.time())
+        logger.info(f"⏳ 模型 {model_id} 熔断中，剩余 {remaining} 秒")
+        return True
+
+    def get_status(self) -> Dict[str, int]:
+        """返回当前熔断状态快照。"""
+        now = time.time()
+        return {
+            mid: int(expiry - now)
+            for mid, expiry in self._break_until.items()
+            if now < expiry
+        }
+
+
+# ==================== 本地 OCR 处理器 ====================
+
+class OcrProcessor:
+    """PP-OCRv6 本地 OCR 预处理器。惰性初始化，失败时自动回退。"""
+
+    def __init__(self):
+        self._ocr = None
+        self._init_error = None
+        self._initialized = False
+
+    def _lazy_init(self):
+        if self._initialized:
+            return
+        self._initialized = True
+        if not ENABLE_LOCAL_OCR:
+            self._init_error = "ENABLE_LOCAL_OCR=false，跳过本地 OCR"
+            logger.info(self._init_error)
+            return
+        try:
+            threads = max(1, OCR_CPU_THREADS)
+            os.environ['OMP_NUM_THREADS'] = str(threads)
+            os.environ['MKL_NUM_THREADS'] = str(threads)
+            from paddleocr import PaddleOCR
+            try:
+                self._ocr = PaddleOCR(lang='ch', ocr_version='PP-OCRv4')
+            except Exception:
+                self._ocr = PaddleOCR(lang='ch')
+            logger.info(f"✅ PP-OCRv6 本地 OCR 初始化成功 (CPU, 线程数={threads})")
+        except ImportError as e:
+            self._init_error = f"PaddleOCR 未安装: {e}"
+            logger.warning(f"⚠️ {self._init_error}，将回退云端视觉链")
+        except Exception as e:
+            self._init_error = f"PP-OCRv6 初始化失败: {e}"
+            logger.warning(f"⚠️ {self._init_error}，将回退云端视觉链")
+
+    def _has_special_symbols(self, text: str) -> bool:
+        """检测是否包含公式/图表特征符号。"""
+        math_symbols = r'[∑∫√±≈≤≥∞Δθπλμσφωαβγδε]'
+        if re.search(math_symbols, text):
+            return True
+        pipe_count = text.count('|')
+        if pipe_count >= 3:
+            return True
+        return False
+
+    def run(self, image_data: bytes) -> Optional[Dict[str, Any]]:
+        """对图片字节数据执行 OCR，返回分析结果。"""
+        self._lazy_init()
+        if self._ocr is None:
+            return None
+
+        try:
+            from io import BytesIO
+            img_buf = BytesIO(image_data)
+            result = self._ocr.ocr(img_buf, cls=True)
+        except Exception as e:
+            logger.warning(f"⚠️ OCR 执行失败: {e}")
+            return None
+
+        if not result or not result[0]:
+            return {'text': '', 'lines': 0, 'chars': 0, 'avg_confidence': 0.0, 'has_special': False}
+
+        lines_text = []
+        confidences = []
+        for line in result[0]:
+            text = line[1][0]
+            confidence = line[1][1]
+            lines_text.append(text)
+            confidences.append(confidence)
+
+        full_text = '\n'.join(lines_text)
+        chars = len(full_text.replace(' ', '').replace('\n', ''))
+        lines = len(lines_text)
+        avg_conf = sum(confidences) / len(confidences) if confidences else 0.0
+        has_special = self._has_special_symbols(full_text)
+
+        return {
+            'text': full_text,
+            'lines': lines,
+            'chars': chars,
+            'avg_confidence': avg_conf,
+            'has_special': has_special
+        }
+
+    @property
+    def init_error(self) -> Optional[str]:
+        self._lazy_init()
+        return self._init_error
+
+    @property
+    def available(self) -> bool:
+        self._lazy_init()
+        return self._ocr is not None
+
+
+# 全局实例
+ocr_processor = OcrProcessor()
+model_circuit_breaker = ModelCircuitBreaker()
 
 # 全局安全管理器
 security_manager = SecurityManager()
@@ -1519,7 +1749,7 @@ class AnswerProcessor:
     def _count_blanks(question: str) -> int:
         """
         统计填空题中空格的数量
-        常见模式:___/__/（）/()/【】/第N空/空N
+        常见模式:___/__/（）/()/【】/第N空/空N/连续空格(OSC的&nbsp;)
         """
         if not question:
             return 0
@@ -1532,23 +1762,77 @@ class AnswerProcessor:
             r'【\s*】',         # 【】
             r'［\s*］',         # ［］
             r'第\s*[一二三四五六七八九十0-9]+\s*空',  # 第1空/第一空
-            r'(?<!第)\s*空\s*[一二三四五六七八九十0-9]',  # 空1/空一 (但不在"第N空"里)
+            r'(?<!第)\s*空\s*[一二三四五六七八九十0-9]',  # 空1/空一
+            r'\s{6,}',         # 6个以上连续空格(OSC的&nbsp;转换,兼容器号  "         .")
         ]
         for pattern in patterns:
             count += len(re.findall(pattern, question))
         return count
 
     @staticmethod
+    def _split_completion_parts(cleaned_answer: str, question: str = "") -> Optional[List[str]]:
+        """
+        尝试将清洗后的填空题答案拆分为多个空格的独立答案
+        返回 None 表示无法拆分（单空或不明确）
+
+        OCS 的默认分隔符: @@@,==,#,-,###|,|;
+        其中 - 会与负数冲突（"1#-1" 被拆成 ["1","","1"]）
+        所以我们用 # 做内部统一分隔符，填入 OCS 时用数组避免分隔符冲突
+        """
+        if not cleaned_answer:
+            return None
+
+        blank_count = AnswerProcessor._count_blanks(question)
+
+        # # 分隔符只在确认多空时才使用(blank_count>=2),
+        # 防止 AI 在单空题的答案里误用 # (如 (-∞#1]) 导致答案被拆
+        if blank_count >= 2 and '#' in cleaned_answer:
+            parts = [p.strip() for p in cleaned_answer.split('#') if p.strip()]
+            if len(parts) >= 2:
+                return [AnswerProcessor._normalize_math(p) for p in parts]
+
+        # 其他 OCS 分隔符 → 统一转
+        if blank_count >= 2:
+            for sep in ['|', ';', '；', '@@@', '==', '###']:
+                if sep in cleaned_answer:
+                    parts = [p.strip() for p in cleaned_answer.split(sep) if p.strip()]
+                    if len(parts) >= 2:
+                        return [AnswerProcessor._normalize_math(p) for p in parts]
+
+        # 自然分隔符:只在题目明确有多空时尝试
+        if blank_count >= 2:
+            if '\n' in cleaned_answer:
+                parts = [p.strip() for p in cleaned_answer.split('\n') if p.strip()]
+                if len(parts) >= 2:
+                    return [AnswerProcessor._normalize_math(p) for p in parts]
+            if re.search(r'[,，;；、]', cleaned_answer):
+                parts = [p.strip() for p in re.split(r'[,，;；、]', cleaned_answer) if p.strip()]
+                if len(parts) >= 2:
+                    return [AnswerProcessor._normalize_math(p) for p in parts]
+            pre = re.sub(r'\s*=\s*', '=', cleaned_answer)
+            space_parts = pre.split()
+            if len(space_parts) >= 2:
+                return [AnswerProcessor._normalize_math(p) for p in space_parts]
+
+        return None
+
+    @staticmethod
     def _process_completion(raw_answer: str, question: str = "") -> str:
         """
-        处理填空题答案 - 重点是多空用 # 分隔
-        OCS 默认分隔符: @@@,==,#,-,###|,|;
-        AI 偶尔会用空格/换行/逗号分隔,这里强制转成 #
+        处理填空题答案 - 多空用 # 分隔, 再交给 endpoint 拆成数组传 OCS
+        
+        为什么不用其他分隔符直接用 OCS 字符串?
+        OCS 的分隔符列表 @@@,==,#,-,###|,|; 里包含 -,会误拆负数
+        "1#-1" 被 OCS 拆成 ["1","","1"] 导致第二空丢失
+        后端用 # 统一分隔, endpoint 里拆成数组, OCS handler 按数组填入
+        
+        返回值:
+            单空 → 返回规范化后的一个字符串
+            多空 → 返回 "#" 串联的字符串 (由 endpoint 进一步拆分)
         """
         if not raw_answer:
             return ""
 
-        # 前缀清洗（不动数学符号,先拆再规范化）
         cleaned = raw_answer.strip()
         cleaned = re.sub(r'^(答案[是为：:]*|正确答案[是为：:]*|选择[：:]*)', '', cleaned)
         cleaned = re.sub(r'[*`_]', '', cleaned).strip()
@@ -1556,42 +1840,11 @@ class AnswerProcessor:
         if not cleaned:
             return raw_answer
 
-        # 检测题目中有几个空
-        blank_count = AnswerProcessor._count_blanks(question)
-
-        # 单空:直接规范化数学符号后返回
-        if blank_count < 2:
+        parts = AnswerProcessor._split_completion_parts(cleaned, question)
+        if parts is None:
             return AnswerProcessor._normalize_math(cleaned)
 
-        # 多空:已经用了 #  → 拆分每段,各自规范化,再 # 拼接
-        if '#' in cleaned:
-            parts = [AnswerProcessor._normalize_math(p.strip()) for p in cleaned.split('#') if p.strip()]
-            return '#'.join(parts)
-
-        # 用了 OCS 列表里的其他分隔符（|, ;, 等） → 统一转成 #
-        for sep in ['|', ';', '；', '@@@', '==', '###']:
-            if sep in cleaned:
-                parts = [AnswerProcessor._normalize_math(p.strip()) for p in cleaned.split(sep) if p.strip()]
-                return '#'.join(parts)
-
-        # 还没找到:按自然分隔符拆
-        parts = None
-        if '\n' in cleaned:
-            parts = [p.strip() for p in cleaned.split('\n') if p.strip()]
-        elif re.search(r'[,，;；、]', cleaned):
-            parts = [p.strip() for p in re.split(r'[,，;；、]', cleaned) if p.strip()]
-        else:
-            # 空格分隔:先只规范化"="(不动数字间空格,保留"1 -1"结构),再拆
-            pre = re.sub(r'\s*=\s*', '=', cleaned)
-            if ' ' in pre:
-                parts = [p.strip() for p in pre.split(' ') if p.strip()]
-
-        if parts and len(parts) >= 2:
-            parts = [AnswerProcessor._normalize_math(p) for p in parts]
-            return '#'.join(parts)
-
-        # 兜底:单答案(AI 没给多份,后端也没法拆)
-        return AnswerProcessor._normalize_math(cleaned)
+        return '#'.join(parts)
     
     @staticmethod
     def _match_option(answer: str, option: str) -> bool:
@@ -2113,6 +2366,8 @@ def infer_provider_from_model(model_id: str, model_config: Optional[Dict[str, An
         return PROVIDER_DOUBAO
     if 'deepseek' in model_name or 'api.deepseek.com' in base_url or 'deepseek' in model_id_lower:
         return PROVIDER_DEEPSEEK
+    if 'qwen' in model_name or 'dashscope' in base_url or 'aliyuncs' in base_url or 'qwen' in model_id_lower:
+        return PROVIDER_QWEN
     return str(model_config.get('provider', 'custom'))
 
 
@@ -2374,12 +2629,17 @@ def extract_usage_from_response(response: Any) -> Dict[str, int]:
 
 
 def build_reasoning_payload(model_config: Dict[str, Any], force_reasoning: bool = False) -> Tuple[Optional[Dict[str, Any]], Optional[Tuple[str, Any]]]:
-    """生成 reasoning 参数，兼容 Responses API 与旧参数透传。"""
+    """生成 reasoning 参数，兼容 Responses API、旧参数透传、Qwen enable_thinking。"""
     if not (force_reasoning and model_config.get('supports_reasoning', False)):
         return None, None
 
     param_name = model_config.get('reasoning_param_name', 'reasoning_effort')
     param_value = model_config.get('reasoning_param_value', 'medium')
+
+    # Qwen 使用 enable_thinking=true/false 而非 reasoning_effort
+    if param_name == 'enable_thinking':
+        logger.info(f"🧠 启用 Qwen 思考模式: enable_thinking=true")
+        return None, ('enable_thinking', 'true')
 
     if should_use_openai_responses(model_config):
         effort = str(param_value or 'medium').strip().lower()
@@ -3026,68 +3286,150 @@ def answer_question():
         actual_provider = None
         model_name = None
         
-        # ===== 两阶段流水线：视觉模型提取文字 → 推理模型思考答题 =====
+        # ===== OCR优先 + 分层降级流水线 =====
         # 优化：选项是图片的单选/多选（use_option_labels=True）跳过两阶段,
-        # 直接让豆包看图选字母。理由:
+        # 直接让视觉模型看图选字母。理由:
         #   1) 选项图是答案本身,不是题干,不需要"提取文字→再推理"
         #   2) 两阶段要走 2 次 API,4 张选项图会导致 30s+ 超时
-        #   3) 豆包本身能直接根据图选字母,一步到位
+        #   3) 视觉模型本身能直接根据图选字母,一步到位
         skip_two_stage = use_option_labels and q_type in ("single", "multiple")
+        vision_text = None
+        vision_model_used = None
+        ocr_metrics = {}
 
         if image_urls and not skip_two_stage:
-            # Stage 1: 视觉模型提取图片文字
-            vision_text = None
-            image_model_ids = custom_model_manager.get_question_type_models('image')
+            # ---- Phase A: 本地 OCR 预处理 ----
+            ocr_text = None
+            ocr_metrics = {}
+            ocr_image_data = []
 
-            for model_id in image_model_ids:
-                model = custom_model_manager.get_model(model_id)
-                if not model or not model.get('is_multimodal', False) or not model.get('enabled', True):
-                    continue
+            if ENABLE_LOCAL_OCR and ocr_processor.available:
+                try:
+                    with create_http_client(timeout=min(TIMEOUT, 30.0), follow_redirects=True) as ocr_http:
+                        for img_url in image_urls:
+                            headers = {
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                                'Referer': 'https://mooc1.chaoxing.com/',
+                                'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+                            }
+                            resp = ocr_http.get(img_url, headers=headers)
+                            resp.raise_for_status()
+                            ocr_image_data.append(resp.content)
 
-                logger.info(f"👁️ Stage 1 - 视觉模型提取图片文字: {model_id}")
-                print(f"👁️ Stage 1 - 视觉模型提取图片文字: {model_id}")
+                    if ocr_image_data:
+                        combined_text = ''
+                        total_chars = 0
+                        total_conf = 0.0
+                        total_lines = 0
+                        has_special = False
+                        conf_count = 0
 
-                extraction_prompt = "请仔细查看图片，提取图片中所有的文字内容。只输出图片里的文字，不要有任何解释。如果图片中没有文字，请简要描述图片中的内容。"
-                
-                _, vision_answer, _, _ = _call_custom_model(
-                    model_id,
-                    extraction_prompt,
-                    image_urls,
-                    force_reasoning=False,
-                    image_items=image_items if image_items else None
-                )
+                        for raw_data in ocr_image_data:
+                            result = ocr_processor.run(raw_data)
+                            if result and result['text']:
+                                combined_text += result['text'] + '\n'
+                                total_chars += result['chars']
+                                if result['avg_confidence'] > 0:
+                                    total_conf += result['avg_confidence']
+                                    conf_count += 1
+                                total_lines += result['lines']
+                                if result['has_special']:
+                                    has_special = True
 
-                if vision_answer and vision_answer.strip():
-                    vision_text = vision_answer.strip()
-                    logger.info(f"📝 视觉模型提取结果: {vision_text[:500]}")
-                    print(f"📝 视觉模型提取结果: {vision_text[:200]}")
-                    break
-                else:
-                    logger.warning(f"⚠️ 视觉模型 {model_id} 提取失败，尝试下一个")
+                        avg_conf = total_conf / conf_count if conf_count > 0 else 0.0
+                        ocr_text = combined_text.strip()
+                        ocr_metrics = {
+                            'chars': total_chars, 'avg_confidence': round(avg_conf, 4),
+                            'lines': total_lines, 'has_special': has_special
+                        }
+
+                        logger.info(f"🔍 OCR指标: chars={total_chars}, conf={avg_conf:.2f}, lines={total_lines}, special={has_special}")
+                        print(f"🔍 OCR指标: chars={total_chars}, conf={avg_conf:.2f}, lines={total_lines}, special={has_special}")
+
+                        if (total_chars >= OCR_TEXT_MIN_CHARS
+                                and avg_conf >= OCR_MIN_CONFIDENCE
+                                and total_lines >= OCR_MIN_LINES
+                                and not has_special):
+                            vision_text = ocr_text
+                            vision_model_used = "local_ocr"
+                            logger.info(f"✅ 本地OCR满足阈值，直接使用OCR文本，跳过云端视觉模型")
+                            print(f"✅ 本地OCR满足阈值，直接使用OCR文本，跳过云端视觉模型")
+                        else:
+                            logger.info(f"🔍 OCR未达阈值(chars={total_chars}, conf={avg_conf:.2f}, special={has_special})，进入云端降级链")
+                            print(f"🔍 OCR未达阈值，进入云端降级链")
+                    else:
+                        logger.warning(f"⚠️ OCR阶段图片全部下载失败，进入云端降级链")
+                        print(f"⚠️ OCR阶段图片全部下载失败，进入云端降级链")
+                except Exception as ocr_err:
+                    logger.warning(f"⚠️ OCR预处理异常: {ocr_err}，进入云端降级链")
+                    print(f"⚠️ OCR预处理异常，进入云端降级链")
+            else:
+                ocr_reason = ocr_processor.init_error if not ocr_processor.available else "ENABLE_LOCAL_OCR=false"
+                logger.info(f"🔍 本地OCR不可用({ocr_reason})，进入云端降级链")
+                print(f"🔍 本地OCR不可用({ocr_reason})，进入云端降级链")
+
+            # ---- Phase B: 云端视觉模型降级(仅在OCR未产生可用文本时) ----
+            if not vision_text:
+                image_models = custom_model_manager.get_question_type_models('image')
+                extraction_prompt = ("请仔细查看图片，提取图片中所有的文字内容、公式、表格、图表数据。"
+                                     "只输出提取到的信息，不要有任何解释或推断答案。"
+                                     "如果图片中没有文字，请详细描述图片中的视觉内容。")
+
+                for model_id in image_models:
+                    if model_circuit_breaker.is_broken(model_id):
+                        logger.info(f"⏩ 模型 {model_id} 熔断中，跳过")
+                        print(f"⏩ 模型 {model_id} 熔断中，跳过")
+                        continue
+
+                    model = custom_model_manager.get_model(model_id)
+                    if not model or not model.get('is_multimodal', False) or not model.get('enabled', True):
+                        continue
+
+                    logger.info(f"👁️ 视觉模型提取: {model_id}")
+                    print(f"👁️ 视觉模型提取: {model_id}")
+
+                    _, vision_answer_raw, _, _ = _call_custom_model(
+                        model_id,
+                        extraction_prompt,
+                        image_urls,
+                        force_reasoning=False,
+                        image_items=image_items if image_items else None
+                    )
+
+                    if vision_answer_raw and vision_answer_raw.strip():
+                        vision_text = vision_answer_raw.strip()
+                        vision_model_used = model_id
+                        logger.info(f"📝 视觉模型提取结果({model_id}): {vision_text[:500]}")
+                        print(f"📝 视觉模型提取结果: {vision_text[:200]}")
+                        break
+                    else:
+                        logger.warning(f"⚠️ 视觉模型 {model_id} 返回空，尝试下一个")
+                        print(f"⚠️ 视觉模型 {model_id} 返回空，尝试下一个")
+                        if 'glm' in model_id.lower():
+                            model_circuit_breaker.record_failure(model_id)
+
+            # ---- 日志输出图片处理结果 ----
+            log_model = vision_model_used or "none"
+            logger.info(f"📊 图片处理结果: ocr_available={ocr_processor.available}, extracted_by={log_model}")
+            print(f"📊 图片处理结果: ocr_available={ocr_processor.available}, final_model={log_model}")
+            if ocr_metrics:
+                logger.info(f"📊 OCR指标详情: {json.dumps(ocr_metrics)}")
 
             if vision_text:
-                # 将提取的文字追加到 prompt 中
                 prompt_with_images = f"{prompt}\n\n【图片中提取的文字内容】\n{vision_text}\n\n请结合以上题目信息和图片文字内容给出答案。"
-                # Stage 2: 文本推理模型（DeepSeek）思考答题，不传图片
-                type_models = custom_model_manager.get_available_model_ids_for_question(
-                    q_type, has_images=False
-                )
+                type_models = custom_model_manager.get_available_model_ids_for_question(q_type, has_images=False)
                 model_image_urls = []
                 model_image_items = None
                 logger.info(f"🧠 Stage 2 - 推理模型思考答题: {type_models}")
                 print(f"🧠 Stage 2 - 推理模型思考答题")
             else:
-                # 视觉提取失败，回退到原流程（直接传图给模型）
-                logger.warning("⚠️ 视觉提取失败，回退到直接传图模式")
-                type_models = custom_model_manager.get_available_model_ids_for_question(
-                    q_type, has_images=True
-                )
+                logger.warning("⚠️ 所有视觉提取均失败，回退到直接传图模式")
+                type_models = custom_model_manager.get_available_model_ids_for_question(q_type, has_images=True)
                 prompt_with_images = prompt
                 model_image_urls = image_urls
                 model_image_items = image_items if image_items else None
         else:
             # 单阶段流程:无图片,或选项是图片的题(跳过两阶段节省时间)
-            # 此时 prompt 已经包含 Option A/B/C/D 标签,豆包会直接看图选字母
             type_models = custom_model_manager.get_available_model_ids_for_question(
                 q_type, has_images=bool(image_urls)
             )
@@ -3095,8 +3437,8 @@ def answer_question():
             model_image_urls = image_urls
             model_image_items = image_items if image_items else None
             if skip_two_stage:
-                print(f"⚡ 选项含图,跳过两阶段,直接豆包视觉选字母")
-                logger.info(f"⚡ 选项含图,跳过两阶段,直接豆包视觉选字母")
+                print(f"⚡ 选项含图,跳过两阶段,直接视觉选字母")
+                logger.info(f"⚡ 选项含图,跳过两阶段,直接视觉选字母")
 
         for model_id in type_models:
             model = custom_model_manager.get_model(model_id)
@@ -3114,7 +3456,7 @@ def answer_question():
                 image_items=model_image_items
             )
 
-            if raw_answer:
+            if raw_answer and raw_answer.strip():
                 custom_model_id = model_id
                 actual_provider = infer_provider_from_model(model_id, model)
                 model_name = model.get('name', model_id)
@@ -3227,6 +3569,22 @@ def answer_question():
         # 计算总token数
         total_tokens = prompt_tokens + completion_tokens
         
+        # 构建基础 extra_data (所有题目共享)
+        base_extra = {
+            "ai": True,
+            "tags": tags,
+            "model": model_name,
+            "provider": actual_provider,
+            "reasoning_used": reasoning_used,
+            "ai_time": round(ai_time, 2),
+            "total_time": round(total_time, 2),
+            "usage": {
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "total_tokens": total_tokens
+            }
+        }
+        
         ocs_format = [
             question,
             ocs_answer,
@@ -3246,13 +3604,29 @@ def answer_question():
                 }
             }
         ]
+        
+        # 多空填空题:额外返回 ocs_format_multi,每空一个独立条目
+        # 这样 OCS 不会用分隔符去拆分答案,规避 - (减号) 与负数冲突的 bug
+        # 安全守卫: 必须题目明确有多空(blank_count>=2) 且 答案确实含 # 才拆分
+        ocs_format_multi = None
+        if q_type == "completion" and '#' in ocs_answer:
+            completion_blank_count = AnswerProcessor._count_blanks(question)
+            if completion_blank_count >= 2:
+                blank_parts = [p.strip() for p in ocs_answer.split('#') if p.strip()]
+                if len(blank_parts) >= 2:
+                    ocs_format_multi = [
+                        [question, part, dict(base_extra)]
+                        for part in blank_parts
+                    ]
 
-        write_request_trace("response_ready", request_id, {
+        trace_payload = {
             "question_type": q_type,
             "question": question,
             "normalized_options": options,
             "image_items": image_items,
             "use_option_labels": use_option_labels,
+            "vision_model": vision_model_used,
+            "ocr_metrics": ocr_metrics,
             "raw_answer": raw_answer,
             "processed_answer": processed_answer,
             "ocs_format_answer": ocs_answer,
@@ -3260,12 +3634,13 @@ def answer_question():
             "model_name": model_name,
             "provider": actual_provider,
             "reasoning_used": reasoning_used
-        })
+        }
+        write_request_trace("response_ready", request_id, trace_payload)
         
         # 返回兼容格式（同时支持OCS格式和原始格式）
         response_provider = actual_provider or ''
         
-        return jsonify({
+        response_json = {
             "success": True,
             "question": question,
             "answer": processed_answer,
@@ -3284,8 +3659,14 @@ def answer_question():
                 "total_tokens": total_tokens
             },
             # OCS脚本直接使用的格式
-            "ocs_format": ocs_format
-        })
+            "ocs_format": ocs_format,
+        }
+        
+        # 多空填空题: 附加独立条目数组,每个空一个答案
+        if ocs_format_multi:
+            response_json["ocs_format_multi"] = ocs_format_multi
+        
+        return jsonify(response_json)
     
     except Exception as e:
         error_time = time.time() - start_time
@@ -3306,16 +3687,20 @@ def answer_question():
 def health_check():
     """健康检查"""
     runtime = custom_model_manager.get_runtime_summary()
+    cb_status = model_circuit_breaker.get_status()
     return jsonify({
         "status": "ok" if runtime.get('can_answer_any') else "error",
         "service": "OCS AI Answerer (Multi-Model)",
         "version": "3.1.0",
         "reasoning_enabled": ENABLE_REASONING,
+        "local_ocr_enabled": ENABLE_LOCAL_OCR,
+        "local_ocr_available": ocr_processor.available,
         "api_configured": runtime.get('can_answer_any'),
         "model_count": runtime.get('model_count', 0),
         "enabled_model_count": runtime.get('enabled_model_count', 0),
         "ready_question_types": runtime.get('ready_question_types', []),
         "has_multimodal_model": runtime.get('has_multimodal_model', False),
+        "circuit_breaker": cb_status,
         "init_error": runtime.get('init_error')
     })
 
@@ -3343,6 +3728,16 @@ def get_config():
         "HTTPS_PROXY": HTTPS_PROXY,
         "TIMEOUT": str(TIMEOUT),
         "MAX_RETRIES": str(MAX_RETRIES),
+
+        # OCR 配置
+        "ENABLE_LOCAL_OCR": str(ENABLE_LOCAL_OCR).lower(),
+        "OCR_TEXT_MIN_CHARS": str(OCR_TEXT_MIN_CHARS),
+        "OCR_MIN_CONFIDENCE": str(OCR_MIN_CONFIDENCE),
+        "OCR_MIN_LINES": str(OCR_MIN_LINES),
+        "OCR_CPU_THREADS": str(OCR_CPU_THREADS),
+
+        # GLM 熔断配置
+        "GLM_CIRCUIT_BREAK_SECONDS": str(GLM_CIRCUIT_BREAK_SECONDS),
         
         # 系统配置
         "HOST": HOST,
@@ -3358,6 +3753,8 @@ def get_config():
         "ready_question_types": runtime.get('ready_question_types', []),
         "mapped_question_types": runtime.get('mapped_question_types', {}),
         "has_multimodal_model": runtime.get('has_multimodal_model', False),
+        "local_ocr_available": ocr_processor.available,
+        "circuit_breaker": model_circuit_breaker.get_status(),
         "can_answer_any": runtime.get('can_answer_any', False),
         "init_error": runtime.get('init_error')
     }
@@ -4040,6 +4437,7 @@ def test_custom_model(model_id):
                     max_retries=1
                 )
 
+                test_max_tokens = model.get('max_tokens', 2000)
                 if should_use_openai_responses(model):
                     response = test_client.responses.create(
                         model=model['model_name'],
@@ -4053,7 +4451,7 @@ def test_custom_model(model_id):
                                 "content": [{"type": "input_text", "text": test_prompt}]
                             }
                         ],
-                        max_output_tokens=100,
+                        max_output_tokens=test_max_tokens,
                         temperature=0.7
                     )
                     response_text = extract_text_from_responses_api(response)
@@ -4064,14 +4462,27 @@ def test_custom_model(model_id):
                             {"role": "system", "content": "你是一个有帮助的AI助手。"},
                             {"role": "user", "content": test_prompt}
                         ],
-                        max_tokens=100,
+                        max_tokens=test_max_tokens,
                         temperature=0.7
                     )
                     response_text = extract_text_from_chat_completions(response)
-            
+
             latency = time.time() - start_time
             usage = extract_usage_from_response(response)
-            
+
+            if not response_text or not response_text.strip():
+                logger.warning(f"⚠️ 模型测试返回空内容: {model_id}")
+                return jsonify({
+                    "success": False,
+                    "error": "模型返回了空内容，请检查模型配置或API响应",
+                    "latency": round(latency, 2),
+                    "tokens": {
+                        "prompt": usage.get('prompt_tokens', 0),
+                        "completion": usage.get('completion_tokens', 0),
+                        "total": usage.get('total_tokens', 0)
+                    }
+                }), 400
+
             result = {
                 "success": True,
                 "response": response_text,
@@ -4300,6 +4711,31 @@ def api_docs_legacy():
 
 
 if __name__ == '__main__':
+    # 详细模型就绪状态（启动时打印，方便排查 disabled / 缺 key / 缺 base_url 的模型）
+    try:
+        print("\n--- 模型就绪状态 ---")
+        _ok = 0
+        for _mid, _m in custom_model_manager.models.items():
+            _name = _m.get('name', _mid)
+            _enabled = _m.get('enabled', False)
+            _base_url = (_m.get('base_url') or '').strip()
+            _api_key_cfg = (_m.get('api_key') or '').strip()
+            _is_mm = _m.get('is_multimodal', False)
+            _mm_tag = ' [视觉]' if _is_mm else ' [文本]'
+            if not _enabled:
+                print(f"  [OFF     ] {_name}{_mm_tag}  (enabled=false)")
+            elif not _base_url:
+                print(f"  [NO_URL  ] {_name}{_mm_tag}  (缺 base_url)")
+            elif not _api_key_cfg or _api_key_cfg.startswith('${'):
+                print(f"  [NO_KEY  ] {_name}{_mm_tag}  (api_key 未配置)")
+            else:
+                print(f"  [OK      ] {_name}{_mm_tag}")
+                _ok += 1
+        print(f"  -- {_ok}/{len(custom_model_manager.models)} 个模型就绪")
+        print()
+    except Exception:
+        pass
+
     runtime = custom_model_manager.get_runtime_summary()
     ready_types = "、".join(runtime.get('ready_question_types', [])) or "无"
     model_info = f"已配置模型 {runtime.get('model_count', 0)} 个 / 已启用 {runtime.get('enabled_model_count', 0)} 个"
@@ -4308,18 +4744,17 @@ if __name__ == '__main__':
     try:
         print(f"""
         OCS智能答题API服务 - 多模型支持版本 v3.0
-        Vue3 前端: http://{HOST}:{PORT}/
-        数据可视化: http://{HOST}:{PORT}/viewer
-        API文档: http://{HOST}:{PORT}/docs
         接口地址: http://{HOST}:{PORT}/api/answer
         健康检查: http://{HOST}:{PORT}/api/health
         配置查询: http://{HOST}:{PORT}/api/config
         CSV数据: http://{HOST}:{PORT}/api/csv
+        模型管理: http://{HOST}:{PORT}/api/models
+        旧版配置面板: http://{HOST}:{PORT}/config_legacy
+        旧版数据查看: http://{HOST}:{PORT}/viewer_legacy
         当前模式: {model_info}
         {model_detail if model_detail else ''}
         思考模式: {'已启用' if ENABLE_REASONING else '未启用'}
         支持题型: 单选、多选、判断、填空
-        旧版HTML: http://{HOST}:{PORT}/config_legacy
         """)
     except UnicodeEncodeError:
         pass

@@ -77,17 +77,19 @@
   "enabled": true
 }</code></pre>
 
-<h3>2.2 当前 7 个模型 ID（记住这些名字）</h3>
+<h3>2.2 当前 9 个模型 ID（记住这些名字）</h3>
 
 <table>
   <tr><th>模型 ID</th><th>显示名</th><th>用途</th></tr>
   <tr><td><code>preset_deepseek_v4_flash</code></td><td>DeepSeek V4 Flash</td><td>文字题（快、便宜）</td></tr>
   <tr><td><code>preset_deepseek_v4_pro</code></td><td>DeepSeek V4 Pro</td><td>文字题（准、慢）</td></tr>
-  <tr><td><code>preset_glm_4v_flash</code></td><td>GLM-4.6V-Flash</td><td>图片题（免费视觉，首选）</td></tr>
-  <tr><td><code>preset_doubao_mini</code></td><td>豆包 Mini 2.0</td><td>图片题（最便宜）</td></tr>
-  <tr><td><code>preset_doubao_turbo</code></td><td>豆包 Turbo 2.1</td><td>图片题（快）</td></tr>
-  <tr><td><code>preset_doubao_pro</code></td><td>豆包 Pro 2.0</td><td>图片题（准）</td></tr>
-  <tr><td><code>preset_doubao_2_1_pro</code></td><td>豆包 Pro 2.1</td><td>图片题（最新）</td></tr>
+  <tr><td><code>preset_glm_4v_flash</code></td><td>GLM-4.6V-Flash</td><td>图片题（免费视觉，首选）<br>注意：免费但可能限流，限流后自动降级</td></tr>
+  <tr><td><code>preset_doubao_mini</code></td><td>豆包 Mini 2.0</td><td>图片题文字链（付费，试用额度非永久免费）</td></tr>
+  <tr><td><code>preset_doubao_turbo</code></td><td>豆包 Turbo 2.1</td><td>图片题（付费）</td></tr>
+  <tr><td><code>preset_doubao_pro</code></td><td>豆包 Pro 2.0</td><td>图片题（付费）</td></tr>
+  <tr><td><code>preset_doubao_2_1_pro</code></td><td>豆包 Pro 2.1</td><td>图片题复杂链（付费，最终兜底）</td></tr>
+  <tr><td><code>preset_qwen_vl_flash</code></td><td>Qwen VL Flash</td><td>图片题（付费轻量级视觉）</td></tr>
+  <tr><td><code>preset_qwen_3_7_plus</code></td><td>Qwen3.7-Plus</td><td>图片题复杂链（付费强力视觉）</td></tr>
 </table>
 
 <h3>2.3 question_type_models（题型映射）</h3>
@@ -97,13 +99,14 @@
   "multiple":   { "models": ["preset_deepseek_v4_pro", "preset_deepseek_v4_flash"] },
   "judgement":  { "models": ["preset_deepseek_v4_flash", "preset_deepseek_v4_pro"] },
   "completion": { "models": ["preset_deepseek_v4_flash", "preset_deepseek_v4_pro"] },
-  "image":      { "models": ["preset_glm_4v_flash", "preset_doubao_mini", "preset_doubao_turbo", "preset_doubao_pro", "preset_doubao_2_1_pro"] }
+  "image":      { "models": ["preset_glm_4v_flash", "preset_doubao_mini", "preset_qwen_vl_flash", "preset_qwen_3_7_plus", "preset_doubao_2_1_pro"] }
 }</code></pre>
 
 <ul>
-  <li><code>single</code> = 单选 / <code>multiple</code> = 多选 / <code>judgement</code> = 判断 / <code>completion</code> = 填空 / <code>image</code> = 图片题</li>
+  <li><code>single</code> = 单选 / <code>multiple</code> = 多选 / <code>judgement</code> = 判断 / <code>completion</code> = 填空</li>
+  <li><code>image</code> = 图片题云端降级链：本地 OCR 失败后，按 GLM → 豆包 Mini → Qwen VL Flash → Qwen3.7-Plus → 豆包 Pro 2.1 顺序调用</li>
   <li>每个题型 <code>"models"</code> 数组里 <strong>第一个是主用，后面的都是 fallback</strong>（主用失败自动降级）</li>
-  <li>当前 Flash 都排在 Pro 前面——所以默认用 Flash，Flash 失败才用 Pro</li>
+  <li>本地 OCR 始终最先跑，达标则完全不调用云端视觉模型，零成本</li>
 </ul>
 
 <hr>
@@ -227,8 +230,9 @@
 
 <pre><code>"image": {
   "models": [
+    "preset_glm_4v_flash",
     "preset_doubao_turbo",        ← 主用还在的豆包
-    "preset_doubao_2_1_pro"       ← 兜底
+    "preset_qwen_vl_flash"        ← 兜底
     // 删掉 preset_doubao_mini
   ]
 }</code></pre>
@@ -303,8 +307,8 @@
   <tr><td><code>temperature</code></td><td>浮点</td><td>随机性 0-2</td><td>0.1 (答题) / 0.7 (创作)</td></tr>
   <tr><td><code>top_p</code></td><td>浮点</td><td>采样阈值 0-1</td><td>0.95</td></tr>
   <tr><td><code>supports_reasoning</code></td><td>布尔</td><td>是否支持思考</td><td><code>true</code>/<code>false</code></td></tr>
-  <tr><td><code>reasoning_param_name</code></td><td>字符串</td><td>API 思考参数名</td><td><code>reasoning_effort</code></td></tr>
-  <tr><td><code>reasoning_param_value</code></td><td>字符串</td><td>思考档位</td><td><code>low</code>/<code>medium</code>/<code>high</code></td></tr>
+  <tr><td><code>reasoning_param_name</code></td><td>字符串</td><td>API 思考参数名</td><td><code>reasoning_effort</code> / <code>enable_thinking</code></td></tr>
+  <tr><td><code>reasoning_param_value</code></td><td>字符串</td><td>思考档位</td><td><code>low</code>/<code>medium</code>/<code>high</code> 或 <code>true</code>/<code>false</code></td></tr>
   <tr><td><code>api_protocol</code></td><td>字符串</td><td>API 协议</td><td><code>openai_compat</code> / <code>responses</code></td></tr>
   <tr><td><code>enabled</code></td><td>布尔</td><td>是否启用</td><td><code>true</code>/<code>false</code></td></tr>
 </table>

@@ -49,7 +49,7 @@ echo [3/6] Checking dependencies ...
 call venv\Scripts\activate.bat >nul
 python -c "import flask, openai, httpx" 2>nul
 if errorlevel 1 (
-    echo   Installing Flask, openai, httpx - takes about 30 seconds ...
+    echo   Installing dependencies - takes about 30 seconds ...
     python -m pip install --upgrade pip -q 2>nul
     pip install -r requirements.txt -q
     if errorlevel 1 (
@@ -69,6 +69,7 @@ REM ====== Step 4: Configure API keys ======
 echo [4/6] Configuring API keys ...
 set HAS_KEY=0
 set HAS_GLM_KEY=0
+set HAS_QWEN_KEY=0
 if exist ".env" (
     findstr /B /C:"DEEPSEEK_API_KEY=sk-" .env >nul 2>&1
     if not errorlevel 1 set HAS_KEY=1
@@ -76,6 +77,8 @@ if exist ".env" (
     if not errorlevel 1 set HAS_KEY=1
     findstr /B /R /C:"GLM_API_KEY=." .env >nul 2>&1
     if not errorlevel 1 set HAS_GLM_KEY=1
+    findstr /B /R /C:"DASHSCOPE_API_KEY=." .env >nul 2>&1
+    if not errorlevel 1 set HAS_QWEN_KEY=1
 )
 
 if "%HAS_KEY%"=="1" (
@@ -138,10 +141,49 @@ if "%HAS_GLM_KEY%"=="0" (
     )
     echo.
 )
+
+REM Ask user to add Qwen key if still missing
+if "%HAS_QWEN_KEY%"=="0" (
+    echo   [HINT] Qwen VL Flash / 3.7-Plus - optional paid vision models
+    echo   Get DashScope API key at: https://help.aliyun.com/zh/model-studio/getting-started/get-api-key
+    echo   Also need QWEN_BASE_URL from your Bailian workspace
+    echo.
+    choice /c YN /n /m "   Add Qwen key now? (Y/N): "
+    if not errorlevel 2 (
+        if exist "keys.txt" (
+            notepad keys.txt
+            echo   Press any key after saving keys.txt ...
+            pause >nul
+        )
+    )
+    echo.
+)
+
+REM If Qwen key not in .env but present in keys.txt, merge it
+if "%HAS_QWEN_KEY%"=="0" (
+    if exist "keys.txt" (
+        python -c "exit(0 if len(open('keys.txt','r',encoding='utf-8').read().split('DASHSCOPE_API_KEY=',1)[-1].splitlines()[0].strip())>0 else 1)" 2>nul
+        if not errorlevel 1 (
+            echo   [INFO] Merging DASHSCOPE_API_KEY from keys.txt into .env
+            python -c "import os; keys={}; [keys.__setitem__(*l.strip().split('=',1)) for l in open('keys.txt','r',encoding='utf-8') if '=' in l and not l.strip().startswith('#')]; env=open('.env','r',encoding='utf-8').read() if os.path.exists('.env') else ''; lines=env.splitlines(); idx={l.split('=',1)[0]:i for i,l in enumerate(lines) if '=' in l}; [lines.__setitem__(idx[k], k+'='+v) if k in idx else lines.append(k+'='+v) for k,v in keys.items() if k == 'DASHSCOPE_API_KEY']; open('.env','w',encoding='utf-8').write(chr(10).join(lines)+chr(10))"
+            set HAS_QWEN_KEY=1
+            echo   [OK] DASHSCOPE_API_KEY configured from keys.txt
+        )
+    )
+)
 echo.
 
-REM ====== Step 5: Start service ======
-echo [5/6] Starting service ...
+REM ====== Step 5: Model self-check ======
+echo [5/6] Checking model configurations ...
+call venv\Scripts\activate.bat >nul
+python scripts\check_models.py
+if errorlevel 1 (
+    echo   [WARN] 模型自检发现问题，但继续启动服务...
+)
+echo.
+
+REM ====== Step 6: Start service ======
+echo [6/6] Starting service ...
 netstat -ano | findstr ":5000.*LISTENING" >nul 2>&1
 if not errorlevel 1 (
     echo   [WARN] Port 5000 is occupied, cleaning up ...
@@ -151,74 +193,16 @@ if not errorlevel 1 (
     timeout /t 2 /nobreak >nul
 )
 
-echo   Starting OCS service in background ...
-echo   Service URL: http://127.0.0.1:5000
-echo.
-
-REM Start pythonw in background (no black window)
-start /b "" pythonw ocs_ai_answerer_advanced.py
-
-REM Wait for service to be ready
-echo   Waiting for service to be ready (up to 30s) ...
-set TRIED=0
-:WAIT_LOOP
-set /a TRIED+=1
-timeout /t 1 /nobreak >nul
-curl -s -m 2 http://127.0.0.1:5000/api/health >nul 2>&1
-if not errorlevel 1 goto SERVICE_READY
-if %TRIED% lss 30 goto WAIT_LOOP
-echo   [WARN] Service did not respond in 30s
-echo   Check the log file: ocs_request_trace.log
-goto DESKTOP_SHORTCUT
-
-:SERVICE_READY
-echo   [OK] Service is ready!
-echo.
-
-REM ====== Step 6: Desktop shortcut + open browser ======
-echo [6/6] Final setup ...
-echo.
-
-set SHORTCUT_PATH=%USERPROFILE%\Desktop\OCS-AI-Answerer.lnk
-if exist "%SHORTCUT_PATH%" (
-    echo   [OK] Desktop shortcut already exists
-) else (
-    echo   Creating desktop shortcut ...
-    set CSS=%TEMP%\cs_%RANDOM%.vbs
-    (
-        echo Set WshShell = CreateObject^("WScript.Shell"^)
-        echo Set shortcut = WshShell.CreateShortcut^("%SHORTCUT_PATH%"^)
-        echo shortcut.TargetPath = "%~dp0..\scripts\一键启动.bat"
-        echo shortcut.WorkingDirectory = "%~dp0.."
-        echo shortcut.WindowStyle = 7
-        echo shortcut.Description = "OCS AI Auto-Answer Service"
-        echo shortcut.Save
-    ) > "%CSS%"
-    cscript //nologo "%CSS%" >nul 2>&1
-    del "%CSS%" >nul 2>&1
-    if exist "%SHORTCUT_PATH%" (
-        echo   [OK] Desktop shortcut created
-    ) else (
-        echo   [WARN] Could not create desktop shortcut
-    )
-)
-
 echo.
 echo ============================================================
-echo   Service is running in background!
+echo   Service is running!
+echo   Service URL:  http://127.0.0.1:5000
+echo   Close this window to stop the service.
 echo ============================================================
 echo.
-echo   Service URL:      http://127.0.0.1:5000
-echo   Health check:     http://127.0.0.1:5000/api/health
-echo   Config panel:     http://127.0.0.1:5000/config_legacy
-echo.
-echo   Read docs/INSTALL.html for browser setup steps.
-echo   This window will close in 5 seconds ...
-echo   (Service keeps running in background)
-echo.
 
-start "" "http://127.0.0.1:5000/config_legacy"
-start "" "docs\INSTALL.html"
+call venv\Scripts\activate.bat >nul
+"venv\Scripts\python.exe" ocs_ai_answerer_advanced.py
 
-timeout /t 5 /nobreak >nul
+pause
 exit /b 0

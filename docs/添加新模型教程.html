@@ -155,9 +155,9 @@ scripts\一键启动.bat</code></pre>
   </tr>
   <tr>
     <td><b>通义千问 Qwen</b></td>
-    <td>https://dashscope.aliyuncs.com/compatible-mode/v1</td>
-    <td>qwen-plus / qwen-turbo / qwen-max</td>
-    <td>—</td>
+    <td>https://dashscope.aliyuncs.com/compatible-mode/v1<br>⚠️ 实际请从百炼控制台获取工作空间专属地址</td>
+    <td>qwen-plus / qwen-turbo / qwen-max<br>qwen-vl-flash / qwen3.7-plus</td>
+    <td>视觉模型用 <span class="green">enable_thinking</span> 而非 reasoning_effort</td>
   </tr>
   <tr>
     <td><b>智谱 GLM</b></td>
@@ -203,7 +203,8 @@ scripts\一键启动.bat</code></pre>
   <tr><th>场景</th><th>字段</th><th>值</th></tr>
   <tr><td>模型支持图片</td><td><code>is_multimodal</code></td><td><code>true</code></td></tr>
   <tr><td>支持思考/推理</td><td><code>supports_reasoning</code></td><td><code>true</code></td></tr>
-  <tr><td>思考档位</td><td><code>reasoning_param_value</code></td><td><code>low</code>/<code>medium</code>/<code>high</code></td></tr>
+  <tr><td>思考档位(DeepSeek/豆包/GLM)</td><td><code>reasoning_param_value</code></td><td><code>low</code>/<code>medium</code>/<code>high</code></td></tr>
+  <tr><td>思考开关(Qwen)</td><td><code>reasoning_param_name: "enable_thinking"</code><br><code>reasoning_param_value: "false"</code></td><td>Qwen 用 <code>enable_thinking=true/false</code> 而非 reasoning_effort。</td></tr>
   <tr><td>长输出</td><td><code>max_tokens</code></td><td>4096 / 8192</td></tr>
   <tr><td>稳定答案</td><td><code>temperature</code></td><td><code>0.0</code> (填空) / <code>0.1</code> (通用)</td></tr>
   <tr><td>协议特殊</td><td><code>api_protocol</code></td><td><code>openai_compat</code> (默认) / <code>responses</code> / <code>anthropic</code></td></tr>
