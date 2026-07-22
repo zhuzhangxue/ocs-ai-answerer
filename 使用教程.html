@@ -511,24 +511,28 @@ DASHSCOPE_API_KEY=你的阿里百炼DashScope密钥
         <span class="phase-title">第四阶段：浏览器部署 <span class="time-est">2 分钟</span></span>
       </div>
 
+      <div class="info">💡 <strong>推荐使用 Edge 浏览器</strong>（Chrome 也可，但 Edge 对油猴脚本兼容性更好，操作更简单）</div>
       <div class="info">💡 <strong>为什么需要装扩展？</strong>OCS 网课助手是「油猴脚本」,必须装在浏览器扩展上才能运行(浏览器安全机制,程序无法自动装)。</div>
 
       <div class="step">
         <span class="step-num">1</span>
-        <h3>安装油猴脚本 Tampermonkey</h3>
-        <p>OCS 网课助手是油猴脚本,需要先装 Tampermonkey 浏览器扩展。</p>
-        <p>按下面步骤操作即可。</p>
+        <h3>装 Tampermonkey 扩展 <span class="check">必需</span></h3>
+        <p>点击下方按钮直达扩展商店：</p>
+        <a class="btn green" href="https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaaobikljhlgknadcnnailhcd" target="_blank">Edge 用户点此（推荐）→</a>
+        <a class="btn green" href="https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank">Chrome 用户点此 →</a>
+        <p>在商店页面点「<strong>获取/添加</strong>」→「<strong>添加扩展</strong>」。</p>
+        <p>浏览器右上角出现黑色方块图标 = 装好。</p>
       </div>
 
       <div class="step">
         <span class="step-num">2</span>
-        <h3>装 Tampermonkey 扩展 <span class="check">必需</span></h3>
-        <p>点击下方按钮直达 Chrome 应用商店。</p>
-        <a class="btn green" href="https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank">Chrome 用户点此 →</a>
-        <a class="btn green" href="https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaaobikljhlgknadcnnailhcd" target="_blank">Edge 用户点此 →</a>
-        <p>在商店页面点「<strong>添加至 Chrome/Edge</strong>」→「添加扩展」</p>
-        <p>浏览器右上角出现黑色方块图标 = 装好。</p>
-        <div class="note">💡 Edge 用户用「脚本猫」也行,步骤类似</div>
+        <h3>开启油猴的必要权限 <span class="check">必需</span></h3>
+        <p>装好扩展后，还需要两步设置才能让脚本正常工作：</p>
+        <ol>
+          <li><strong>开启开发人员模式</strong>：浏览器地址栏输入 <code>edge://extensions/</code>（Edge）或 <code>chrome://extensions/</code>（Chrome），在页面右上角打开「<strong>开发人员模式</strong>」开关</li>
+          <li><strong>允许用户脚本</strong>：还是在扩展管理页面，找到 Tampermonkey（篡改猴），点「<strong>详细信息</strong>」→ 打开「<strong>允许用户脚本</strong>」或「<strong>允许访问文件网址</strong>」开关</li>
+        </ol>
+        <div class="warning">⚠️ 这两步不做的话，油猴脚本可能无法运行或无法跨域请求本地服务（http://127.0.0.1:5000），导致答题失败</div>
       </div>
 
       <div class="step">
