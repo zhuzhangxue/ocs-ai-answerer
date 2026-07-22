@@ -675,17 +675,31 @@ DASHSCOPE_API_KEY=你的阿里百炼DashScope密钥
       </div>
 
       <div class="faq-item">
-        <div class="faq-q">Q8: 怎么添加新模型(如 Kimi)？</div>
+        <div class="faq-q">Q8: 本地 OCR 是什么？需要开启吗？</div>
+        <div class="faq-a">
+          <p>项目内置了 <strong>PP-OCRv6 本地 OCR</strong>，可以在你电脑上直接识别图片文字，不消耗任何 API 额度。</p>
+          <p><strong>默认关闭</strong>，因为目前的网课图片题大多是数学公式、函数图、表格等，本地 OCR 对这类内容的识别率很低，不如直接走云端视觉模型（GLM / 豆包）准确。</p>
+          <p>如果你确定题目只有<strong>纯文字截图</strong>（没有公式图表），可以尝试开启：</p>
+          <ol>
+            <li>打开 <code>.env</code> 文件，找到 <code>ENABLE_LOCAL_OCR=false</code> 改成 <code>true</code></li>
+            <li>重启服务生效</li>
+          </ol>
+          <p>开启后流程图：本地 OCR 提取文字 → 达标则直接答题（省去调用云端视觉模型）→ 不达标则自动降级到云端视觉链。</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Q9: 怎么添加新模型(如 Kimi)？</div>
         <div class="faq-a">打开 <code>docs/添加新模型教程.html</code> 里有完整步骤。或者直接告诉我「加 Kimi, key 是 xxx」,我帮你加。</div>
       </div>
 
       <div class="faq-item">
-        <div class="faq-q">Q9: 换电脑后怎么迁移?</div>
+        <div class="faq-q">Q10: 换电脑后怎么迁移?</div>
         <div class="faq-a">压缩整个 <code>OCS-AI-Answerer-一键包</code> 文件夹(含 venv) 拷到新电脑,改 keys.txt,双击 bat 即可。venv 目录可以删掉重新创建(小电脑空间不够时)。</div>
       </div>
 
       <div class="faq-item">
-        <div class="faq-q">Q10: 想换个模型(如 Flash 改 Pro)？</div>
+        <div class="faq-q">Q11: 想换个模型(如 Flash 改 Pro)？</div>
         <div class="faq-a">打开 <code>docs/配置教程.html</code> 里有详细步骤。或者告诉我「单选切换到 Pro」,我帮你改。</div>
       </div>
     </div>

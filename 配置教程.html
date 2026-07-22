@@ -293,6 +293,34 @@
 
 <hr>
 
+<h2>附录：本地 OCR 配置说明</h2>
+
+<p>项目内置了 PP-OCRv6 本地 OCR，可在本地直接识别图片文字，无需调用云端 API。</p>
+
+<p><strong>默认关闭</strong>（<code>ENABLE_LOCAL_OCR=false</code>），原因：</p>
+<ul>
+  <li>网课图片题多为数学公式、函数图、表格，本地 OCR 识别率低</li>
+  <li>云端视觉模型（GLM / 豆包）对这类内容更准确</li>
+</ul>
+
+<p>如需开启，编辑项目根目录的 <code>.env</code> 文件：</p>
+
+<pre><code># 是否启用本地 OCR（true=开启，false=关闭）
+# 开启后纯文字截图会优先走本地 OCR，达标则跳过云端视觉模型
+ENABLE_LOCAL_OCR=false
+
+# OCR 达标阈值（同时满足以下三项才会使用 OCR 结果）
+OCR_TEXT_MIN_CHARS=12        # 最少识别字符数
+OCR_MIN_CONFIDENCE=0.75      # 最低平均置信度 (0.0-1.0)
+OCR_MIN_LINES=2              # 最少有效文本行数
+
+# OCR CPU 线程数（默认 2，降低对后台影响；设为 0 则用 Paddle 默认值）
+OCR_CPU_THREADS=2</code></pre>
+
+<p>阈值调低更容易达标（但可能识别错误），调高更严格但识别准确。一般保持默认即可。</p>
+
+<hr>
+
 <h2>附录：完整 JSON 字段速查</h2>
 
 <table>
