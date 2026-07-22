@@ -282,8 +282,9 @@ OCS-AI-Answerer-一键包/
     ├── 启动服务.vbs                  🚀 手动启动（后台静默，无黑窗口）
     ├── 停止服务.bat                  ⏹ 停止服务 + 守护程序
     ├── 启动守护.vbs                  🔄 自动模式（推荐！检测到超星自动启停）
-    ├── 守护程序.vbs                  ⚙️ 被启动守护调用，不要直接运行
-    └── check_study.py                🔍 检测超星/学习通页面的脚本（被守护程序调用）
+    └── lib/                            🔧 内部脚本（不用管）
+        ├── check_models.py
+        └── check_study.py
 </pre>
         <div class="info">💡 <strong>记住两个位置：</strong><br>
         • 启动文件在 <code>scripts/一键启动.bat</code>（稍后要双击它）<br>

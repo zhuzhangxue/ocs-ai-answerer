@@ -176,7 +176,7 @@ echo.
 REM ====== Step 5: Model self-check ======
 echo [5/6] Checking model configurations ...
 call venv\Scripts\activate.bat >nul
-python scripts\check_models.py
+python scripts\lib\check_models.py
 if errorlevel 1 (
     echo   [WARN] 模型自检发现问题，但继续启动服务...
 )
@@ -200,10 +200,9 @@ echo   Service URL:  http://127.0.0.1:5000
 echo ============================================================
 echo.
 echo   Other scripts in this folder:
-echo     启动服务.vbs     - Daily start (background, no window)
+echo     启动服务.vbs     - Manual start (background, no window)
 echo     停止服务.bat     - Stop service + guardian
 echo     启动守护.vbs     - Auto mode: starts/stops with browser
-echo     守护程序.vbs     - (called by 启动守护, don't run directly)
 echo.
 echo   Close this window to stop the service.
 echo.
