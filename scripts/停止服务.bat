@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 echo ============================================
 echo   OCS AI Answerer - 停止服务
 echo ============================================
@@ -11,8 +12,14 @@ if errorlevel 1 (
 ) else (
     for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":5000.*LISTENING"') do (
         taskkill -F -PID %%p >nul 2>&1
-        echo [OK] 服务进程 (PID: %%p) 已停止
+        echo [OK] 答题服务 (PID: %%p) 已停止
     )
+)
+
+REM 停止后台守护程序
+taskkill /F /FI "WINDOWTITLE eq 守护程序" /IM wscript.exe >nul 2>&1
+if not errorlevel 1 (
+    echo [OK] 后台守护程序已停止
 )
 
 echo.

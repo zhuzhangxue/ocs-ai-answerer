@@ -200,9 +200,10 @@ echo   Service URL:  http://127.0.0.1:5000
 echo ============================================================
 echo.
 echo   Other scripts in this folder:
-echo     启动服务.vbs     - Background startup (no window)
-echo     停止服务.bat     - Stop the service
-echo     设置开机自启.bat - Auto-start on boot
+echo     启动服务.vbs     - Daily start (background, no window)
+echo     停止服务.bat     - Stop service + guardian
+echo     启动守护.vbs     - Auto mode: starts/stops with browser
+echo     守护程序.vbs     - (called by 启动守护, don't run directly)
 echo.
 echo   Close this window to stop the service.
 echo.

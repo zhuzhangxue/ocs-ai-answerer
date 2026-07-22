@@ -278,9 +278,10 @@ OCS-AI-Answerer-一键包/
 │   └── 添加新模型教程.html           📖 接入新模型教程
 └── scripts/                           ⚡ 启动脚本文件夹
     ├── 一键启动.bat                  ⭐ 首次配置用（填key+装依赖+启动）
-    ├── 启动服务.vbs                  🚀 日常启动用（后台静默，无黑窗口）
+    ├── 启动服务.vbs                  🚀 手动启动（后台静默，无黑窗口）
     ├── 停止服务.bat                  ⏹ 停止服务
-    └── 设置开机自启.bat              🔁 添加到开机启动
+    ├── 启动守护.vbs                  🔄 自动模式（推荐！检测到浏览器自动启停）
+    └── 守护程序.vbs                  ⚙️ （被启动守护调用，不要直接运行）
 </pre>
         <div class="info">💡 <strong>记住两个位置：</strong><br>
         • 启动文件在 <code>scripts/一键启动.bat</code>（稍后要双击它）<br>
@@ -493,10 +494,11 @@ DASHSCOPE_API_KEY=你的阿里百炼DashScope密钥
         <p><code>scripts/</code> 文件夹里还有几个辅助脚本：</p>
         <table style="width:100%; border-collapse:collapse; margin-top:8px;">
           <tr style="background:#f5f5f5;"><th style="padding:6px 10px;border:1px solid #ddd;">脚本</th><th style="padding:6px 10px;border:1px solid #ddd;">作用</th></tr>
-          <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>启动服务.vbs</code></td><td style="padding:6px 10px;border:1px solid #ddd;">后台静默启动，<strong>无黑窗口</strong>。双击即运行，适合日常使用</td></tr>
-          <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>停止服务.bat</code></td><td style="padding:6px 10px;border:1px solid #ddd;">停止正在运行的服务</td></tr>
-          <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>设置开机自启.bat</code></td><td style="padding:6px 10px;border:1px solid #ddd;">添加到开机启动，以后开机自动在后台运行，不用手动启动</td></tr>
+          <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>启动服务.vbs</code></td><td style="padding:6px 10px;border:1px solid #ddd;">后台静默启动，无黑窗口。双击即运行答题服务</td></tr>
+          <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>停止服务.bat</code></td><td style="padding:6px 10px;border:1px solid #ddd;">停止答题服务 + 后台守护程序</td></tr>
+          <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>启动守护.vbs</code></td><td style="padding:6px 10px;border:1px solid #ddd;"><strong>推荐</strong> — 自动模式。后台检测浏览器，打开浏览器时自动启动服务，关闭浏览器约90秒后自动停止，完全不用手动管</td></tr>
         </table>
+        <div class="note">💡 <strong>日常使用建议：</strong>首次配置好 key 后，以后只需要双击 <code>启动守护.vbs</code> 就行。它会一直在后台（几乎不占 CPU），你正常打开浏览器学习，服务自动跟着启停。</div>
       </div>
     </div>
 
