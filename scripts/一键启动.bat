@@ -197,8 +197,14 @@ echo.
 echo ============================================================
 echo   Service is running!
 echo   Service URL:  http://127.0.0.1:5000
-echo   Close this window to stop the service.
 echo ============================================================
+echo.
+echo   Other scripts in this folder:
+echo     启动服务.vbs     - Background startup (no window)
+echo     停止服务.bat     - Stop the service
+echo     设置开机自启.bat - Auto-start on boot
+echo.
+echo   Close this window to stop the service.
 echo.
 
 call venv\Scripts\activate.bat >nul
