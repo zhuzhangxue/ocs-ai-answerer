@@ -8,9 +8,9 @@ Set ws = CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 
 scriptDir = fso.GetParentFolderName(WScript.ScriptFullName)
-projectPath = fso.GetParentFolderName(scriptDir)
+projectPath = fso.GetParentFolderName(fso.GetParentFolderName(scriptDir))
 serviceVbs = scriptDir & "\启动服务.vbs"
-checkScript = scriptDir & "\lib\check_study.py"
+checkScript = projectPath & "\scripts\lib\check_study.py"
 
 ' 找 Python（优先用 venv 的）
 pythonExe = projectPath & "\venv\Scripts\python.exe"

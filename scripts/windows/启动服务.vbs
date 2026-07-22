@@ -1,9 +1,9 @@
 Set ws = WScript.CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 
-' 获取项目根目录（vbs所在目录的上一级）
+' 获取项目根目录（vbs所在目录的上级的上级）
 scriptPath = fso.GetParentFolderName(WScript.ScriptFullName)
-projectPath = fso.GetParentFolderName(scriptPath)
+projectPath = fso.GetParentFolderName(fso.GetParentFolderName(scriptPath))
 
 ' 先检查服务是否已在运行
 checkCmd = "netstat -ano | findstr ":5000.*LISTENING" > nul"

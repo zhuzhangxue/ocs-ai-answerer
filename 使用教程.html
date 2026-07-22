@@ -216,9 +216,9 @@
 
     <div class="info" style="background:#fff7e6; border-left:4px solid #fa8c16; padding:16px 20px; margin-bottom:20px; border-radius:8px; font-size:15px;">
       <strong>📌 新手快速指引</strong><br>
-      • 首次配置用 <code>scripts/一键启动.bat</code>（装依赖+填 key，只需运行一次）<br>
-      • 日常使用用 <code>scripts/启动守护.vbs</code>（双击后全自动，打开超星自动启停）<br>
-      • 教程在 <code>docs/</code> 文件夹里（有3个HTML教程，双击就能看）<br>
+      • 首次配置用 <code>scripts/windows/一键启动.bat</code>（装依赖+填 key，只需运行一次）<br>
+      • 日常使用用 <code>scripts/windows/启动守护.vbs</code>（双击后全自动，打开超星自动启停）<br>
+      • 教程在根目录和 <code>docs/</code> 文件夹里<br>
       • 配 Key 只需要改 <code>keys.txt</code>（DeepSeek + 豆包 必配，GLM 和 Qwen 可选）<br>
       • 遇到问题先看本页底部的 <strong>FAQ</strong>
     </div>
@@ -273,15 +273,25 @@ OCS-AI-Answerer-一键包/
 ├── config_panel.html                 配置面板(备用)
 ├── env.template                      环境变量模板
 ├── README.md                         项目说明
+├── 使用教程.html                     📖 本文件（Windows/Mac 通用）
+├── Mac使用教程.html                  🍎 Mac 用户看这个
+├── 配置教程.html                     📖 改模型配置教程
+├── 添加新模型教程.html               📖 接入新模型教程
 ├── docs/                              📖 教程文件夹
-│   ├── 使用教程.html                 📖 本文件(你现在看的)
-│   ├── 配置教程.html                 📖 改模型配置教程
-│   └── 添加新模型教程.html           📖 接入新模型教程
+│   ├── 使用教程.html
+│   ├── Mac使用教程.html
+│   ├── 配置教程.html
+│   └── 添加新模型教程.html
 └── scripts/                           ⚡ 启动脚本文件夹
-    ├── 一键启动.bat                  ⭐ 首次配置用（装依赖+填key+自检+启动）
-    ├── 启动服务.vbs                  🚀 手动启动（后台静默，无黑窗口）
-    ├── 停止服务.bat                  ⏹ 停止服务 + 守护程序
-    ├── 启动守护.vbs                  🔄 自动模式（推荐！检测到超星自动启停）
+    ├── windows/                       🪟 Windows 脚本
+    │   ├── 一键启动.bat              ⭐ 首次配置（装依赖+填key+自检+启动）
+    │   ├── 启动服务.vbs              🚀 手动启动
+    │   ├── 停止服务.bat              ⏹ 停止服务+守护
+    │   └── 启动守护.vbs              🔄 自动模式（推荐）
+    ├── mac/                           🍎 Mac 脚本
+    │   ├── 一键启动.command           ⭐ 首次+日常启动
+    │   ├── 启动服务.command           🚀 后台启动
+    │   └── 停止服务.command           ⏹ 停止服务
     └── lib/                            🔧 内部脚本
         ├── check_models.py
         └── check_study.py
@@ -441,7 +451,7 @@ DASHSCOPE_API_KEY=你的阿里百炼DashScope密钥
       <div class="step">
         <span class="step-num">2</span>
         <h3>首次配置：双击一键启动.bat <span class="check">仅首次需要</span></h3>
-        <p>打开 <code>scripts</code> 文件夹，找到 <code>一键启动.bat</code>，<strong>双击</strong>它。</p>
+        <p>打开 <code>scripts/windows/</code> 文件夹，找到 <code>一键启动.bat</code>，<strong>双击</strong>它。</p>
         <p>这个脚本会帮你完成：安装 Python 依赖 → 读取 keys.txt 的 Key → 模型自检 → 启动服务。</p>
         <p>（以后日常使用不需要再运行它，改用 <code>启动守护.vbs</code> 就行）</p>
         <p>会弹出一个黑色 cmd 窗口，显示以下步骤进度。</p>
@@ -492,15 +502,16 @@ DASHSCOPE_API_KEY=你的阿里百炼DashScope密钥
       <div class="step">
         <span class="step-num">5</span>
         <h3>认识 scripts 文件夹的所有脚本</h3>
-        <p><code>scripts/</code> 文件夹里一共有 4 个脚本，各有各的用途：</p>
+        <p><strong>Windows 用户</strong>打开 <code>scripts/windows/</code>，里面有 4 个脚本：</p>
         <table style="width:100%; border-collapse:collapse; margin-top:8px;">
           <tr style="background:#f5f5f5;"><th style="padding:6px 10px;border:1px solid #ddd;">脚本</th><th style="padding:6px 10px;border:1px solid #ddd;">用途</th><th style="padding:6px 10px;border:1px solid #ddd;">什么时候用</th></tr>
-          <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>一键启动.bat</code></td><td style="padding:6px 10px;border:1px solid #ddd;">首次配置：装依赖、填 key、自检、启动</td><td style="padding:6px 10px;border:1px solid #ddd;">⭐ 第一次用（只需一次）</td></tr>
+          <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>一键启动.bat</code></td><td style="padding:6px 10px;border:1px solid #ddd;">首次配置：装依赖、填 key、自检、启动</td><td style="padding:6px 10px;border:1px solid #ddd;">⭐ 第一次用</td></tr>
           <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>启动服务.vbs</code></td><td style="padding:6px 10px;border:1px solid #ddd;">后台静默启动答题服务</td><td style="padding:6px 10px;border:1px solid #ddd;">🚀 手动启动时</td></tr>
           <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>停止服务.bat</code></td><td style="padding:6px 10px;border:1px solid #ddd;">停止答题服务 + 守护程序</td><td style="padding:6px 10px;border:1px solid #ddd;">⏹ 想完全停掉时</td></tr>
           <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>启动守护.vbs</code></td><td style="padding:6px 10px;border:1px solid #ddd;">全自动模式：检测到超星自动启动，关页面自动停止</td><td style="padding:6px 10px;border:1px solid #ddd;">🔄 <strong>推荐日常用</strong></td></tr>
         </table>
-        <div class="note">💡 <strong>日常使用建议：</strong>首次配置好 key 后，以后只需要双击 <code>启动守护.vbs</code> 就行。它会在后台一直运行（几乎不占 CPU），当你打开超星/学习通页面时自动启动答题服务，关闭页面后自动停止，完全不用手动操作。</div>
+        <p><strong>Mac 用户</strong>打开 <code>scripts/mac/</code>，里面的脚本作用类似。</p>
+        <div class="note">💡 <strong>日常使用建议：</strong>首次配置好 key 后，以后只需要双击 <code>scripts/windows/启动守护.vbs</code> 就行。它会在后台一直运行（几乎不占 CPU），当你打开超星/学习通页面时自动启动答题服务，关闭页面后自动停止，完全不用手动操作。</div>
         <div class="info">💡 <code>lib/</code> 文件夹里的 <code>check_models.py</code> 和 <code>check_study.py</code> 是内部调用的脚本，你不用管它们。</div>
       </div>
     </div>
@@ -642,7 +653,7 @@ DASHSCOPE_API_KEY=你的阿里百炼DashScope密钥
         <li>装 OCS 脚本(1 个点击)</li>
         <li>导入 ocs_config.json(粘贴 + 保存)</li>
       </ul>
-      <p style="margin-top: 20px;"><strong>后续使用：双击 <code>scripts/启动守护.vbs</code> 即可</strong>，后台自动运行，打开超星时自动答题，关闭页面自动停止。</p>
+      <p style="margin-top: 20px;"><strong>后续使用：双击 <code>scripts/windows/启动守护.vbs</code> 即可</strong>（Windows），后台自动运行，打开超星时自动答题，关闭页面自动停止。</p>
     </div>
 
     <div class="divider"></div>

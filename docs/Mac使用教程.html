@@ -34,14 +34,12 @@
 <div class="container">
   <div class="header">
     <h1>🍎 OCS AI 答题助手 — Mac 教程</h1>
-    <div class="subtitle">手动部署 · 终端操作 · 约 10 分钟</div>
+    <div class="subtitle">双击启动 · 约 5 分钟</div>
   </div>
 
   <div class="content">
 
-    <div class="warn">
-      ⚠️ Mac 没有一键启动脚本，需要手动在终端操作。<strong>Windows 用户请直接看使用教程.html</strong>，不用看这个。
-    </div>
+    <div class="info">💡 <strong>Mac 启动脚本都在 <code>scripts/mac/</code> 文件夹里</strong>，Windows 的脚本在 <code>scripts/windows/</code>，互不干扰。</div>
 
     <div class="step">
       <span class="step-num">1</span>
@@ -57,22 +55,28 @@ GLM_API_KEY=你的智谱GLM密钥           ← 可选
 
     <div class="step">
       <span class="step-num">2</span>
-      <h3>双击一键启动（首次）</h3>
-      <p>打开 <code>scripts</code> 文件夹，找到 <code>一键启动.command</code>，<strong>双击</strong>它。</p>
-      <p>首次运行会自动：</p>
-      <ul>
-        <li>检查 Python（如果没有会自动提示你安装）</li>
-        <li>创建虚拟环境 + 装依赖（30-60 秒）</li>
-        <li>读取 keys.txt 配置 API Key</li>
-        <li>模型自检 → 启动服务</li>
-      </ul>
-      <p>之后每次使用，双击 <code>一键启动.command</code> 就会直接启动服务。</p>
-      <div class="note">💡 <strong>如果提示「 permission denied」</strong>，打开终端运行：<br><code>chmod +x scripts/一键启动.command</code><br>然后就能正常双击了。</div>
+      <h3>双击一键启动（仅首次）</h3>
+      <p>打开 <code>scripts/mac/</code> 文件夹，找到 <code>一键启动.command</code>，<strong>双击</strong>它。</p>
+      <p>首次运行会自动：检查 Python → 装依赖 → 配置 Key → 模型自检 → 启动服务</p>
+      <div class="note">💡 如果提示 <strong>「 permission denied」</strong>，打开终端运行：<br><code>chmod +x scripts/mac/一键启动.command</code><br>然后就能正常双击了。</div>
       <div class="success">✅ 看到服务地址 http://127.0.0.1:5000 = 启动成功</div>
     </div>
 
     <div class="step">
       <span class="step-num">3</span>
+      <h3>Mac 版启动脚本一览</h3>
+      <p><code>scripts/mac/</code> 文件夹里有三个脚本：</p>
+      <table style="width:100%; border-collapse:collapse; margin-top:8px;">
+        <tr style="background:#f5f5f5;"><th style="padding:6px 10px;border:1px solid #ddd;">脚本</th><th style="padding:6px 10px;border:1px solid #ddd;">用途</th></tr>
+        <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>一键启动.command</code></td><td style="padding:6px 10px;border:1px solid #ddd;">首次配置 + 日常启动（装依赖、填 Key、启动）</td></tr>
+        <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>启动服务.command</code></td><td style="padding:6px 10px;border:1px solid #ddd;">后台启动服务（无窗口）</td></tr>
+        <tr><td style="padding:6px 10px;border:1px solid #ddd;"><code>停止服务.command</code></td><td style="padding:6px 10px;border:1px solid #ddd;">停止答题服务</td></tr>
+      </table>
+      <p>Windows 的 <code>脚本/windows/</code> 里也有对应的 <code>一键启动.bat</code>、<code>启动服务.vbs</code>、<code>停止服务.bat</code>，但那是 Windows 用的，Mac 不用管。</p>
+    </div>
+
+    <div class="step">
+      <span class="step-num">4</span>
       <h3>浏览器部署</h3>
       <p>这部分和 Windows 完全一样，看 <strong>使用教程.html</strong> 的第四、五阶段：</p>
       <ol>
@@ -80,13 +84,6 @@ GLM_API_KEY=你的智谱GLM密钥           ← 可选
         <li>装 OCS 网课助手脚本</li>
         <li>导入 ocs_config.json 题库配置</li>
       </ol>
-    </div>
-
-    <div class="step">
-      <span class="step-num">4</span>
-      <h3>开始答题</h3>
-      <p>登录超星/学习通，点 OCS 悬浮窗开始答题即可。<strong>终端窗口不要关</strong>，关了服务就停了。</p>
-      <p>下次使用直接双击 <code>一键启动.command</code> 就行。</p>
     </div>
 
     <div class="step">
