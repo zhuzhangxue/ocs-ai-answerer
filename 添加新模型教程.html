@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>添加新模型教程 - OCS AI</title>
+<style>
+  body { font-family: -apple-system, "Microsoft YaHei", sans-serif; max-width: 900px; margin: 24px auto; padding: 0 20px; line-height: 1.7; color: #2c3e50; }
+  h1 { border-bottom: 3px solid #667eea; padding-bottom: 8px; }
+  h2 { margin-top: 32px; padding-left: 10px; border-left: 4px solid #667eea; }
+  h3 { color: #764ba2; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px; border-radius: 6px; overflow-x: auto; font-size: 13px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; color: #c7254e; }
+  pre code { background: none; padding: 0; color: #d4d4d4; }
+  .tip { background: #fff7e6; border-left: 4px solid #faad14; padding: 12px 16px; border-radius: 4px; margin: 16px 0; }
+  .warn { background: #fff1f0; border-left: 4px solid #f5222d; padding: 12px 16px; border-radius: 4px; margin: 16px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { border: 1px solid #d9d9d9; padding: 8px 12px; text-align: left; }
+  th { background: #fafafa; }
+  ol li, ul li { margin: 6px 0; }
+  .step { background: #fafafa; border-radius: 8px; padding: 20px 24px; margin: 16px 0; border-left: 4px solid #667eea; }
+  .green { color: #52c41a; font-weight: bold; }
+  .blue { color: #1890ff; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<h1>🧠 添加新模型教程</h1>
+
+<p>想接入 <span class="blue">Kimi K3、Qwen3、GPT-4o、Claude、Gemini</span> 等任何模型,都可以加进来用。</p>
+
+<p>有两种方式:
+<ol>
+  <li><strong>让我帮你加</strong> —— 直接在对话框说"加 Kimi K3",我把 key 和参数告诉你,我来改</li>
+  <li><strong>自己加</strong> —— 按下面 3 步操作,5 分钟搞定</li>
+</ol>
+</p>
+
+<p class="tip">
+💡 <strong>绝大部分模型都兼容 OpenAI 协议</strong>(包括 Kimi/Qwen/DeepSeek/智谱/百川等),只需要换 <code>base_url</code> 和 <code>model_name</code>。
+</p>
+
+<hr>
+
+<h2>方式 1: 让我帮你加 (推荐)</h2>
+
+<div class="step">
+  <h3>在对话框里直接说</h3>
+  <p>举个例子:</p>
+  <pre><code>帮我加一个 Kimi K3 模型
+- API key: sk-xxx
+- base_url: https://api.moonshot.cn/v1
+- model_name: moonshot-v1-128k
+- 用于单选题</code></pre>
+  <p>我直接帮你:
+  <ul>
+    <li>添加模型到 <code>custom_models.json</code></li>
+    <li>加到对应题型映射</li>
+    <li>重启服务生效</li>
+  </ul>
+  </p>
+</div>
+
+<p>你只需要提供这几样信息:</p>
+<table>
+  <tr><th>信息</th><th>怎么找</th></tr>
+  <tr><td>API key</td><td>平台控制台 → API Keys</td></tr>
+  <tr><td>base_url</td><td>平台文档 (通常叫 "API 端点")</td></tr>
+  <tr><td>model_name</td><td>平台文档 (模型 ID / 模型名)</td></tr>
+  <tr><td>支持图片?</td><td>看模型介绍 (multimodal = 支持)</td></tr>
+  <tr><td>支持思考?</td><td>看模型介绍 (reasoning / thinking = 支持)</td></tr>
+</table>
+
+<p><strong>我需要的就是这些。</strong>告诉我后,我直接改 + 重启,5 分钟内能用。</p>
+
+<hr>
+
+<h2>方式 2: 自己改 <code>custom_models.json</code></h2>
+
+<h3>3 步搞定</h3>
+
+<div class="step">
+  <h3>第 1 步: 添加模型定义</h3>
+  <p>打开 <code>custom_models.json</code>,找到 <code>"models"</code> 字典,在末尾加一条 (逗号别忘):</p>
+  <pre><code>"preset_kimi_k3": {
+  "name": "Kimi K3",
+  "provider": "openai",
+  "api_key": "sk-你的Kimi密钥",
+  "base_url": "https://api.moonshot.cn/v1",
+  "model_name": "moonshot-v1-128k",
+  "is_multimodal": false,
+  "max_tokens": 4096,
+  "temperature": 0.1,
+  "top_p": 0.95,
+  "supports_reasoning": true,
+  "reasoning_param_name": "reasoning_effort",
+  "reasoning_param_value": "medium",
+  "api_protocol": "openai_compat",
+  "enabled": true,
+  "is_builtin": false
+}</code></pre>
+</div>
+
+<div class="step">
+  <h3>第 2 步: 加到题型映射</h3>
+  <p>在同一文件,找到 <code>"question_type_models"</code>,把你新模型加到想要的题型:</p>
+  <pre><code>"question_type_models": {
+  "single": {
+    "models": [
+      "preset_kimi_k3",              ← 你刚加的
+      "preset_deepseek_v4_flash",
+      "preset_deepseek_v4_pro"
+    ]
+  },
+  "multiple": {
+    "models": [
+      "preset_kimi_k3",
+      "preset_deepseek_v4_pro"
+    ]
+  }
+}</code></pre>
+  <p>放在数组<strong>第一个</strong> = 主用,后面的 = 降级备用。</p>
+</div>
+
+<div class="step">
+  <h3>第 3 步: 重启服务</h3>
+  <pre><code>netstat -ano | findstr :5000
+taskkill /F /PID &lt;上面的PID&gt;
+scripts\一键启动.bat</code></pre>
+  <p>或者直接关闭旧窗口,在 <code>scripts</code> 文件夹里双击 <code>一键启动.bat</code>。</p>
+</div>
+
+<hr>
+
+<h2>常见模型配置速查</h2>
+
+<table>
+  <tr><th>模型</th><th>base_url</th><th>model_name</th><th>特殊</th></tr>
+  <tr>
+    <td><b>DeepSeek V4 Flash</b></td>
+    <td>https://api.deepseek.com</td>
+    <td>deepseek-v4-flash</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td><b>智谱 GLM-4.6V-Flash</b></td>
+    <td>https://open.bigmodel.cn/api/paas/v4</td>
+    <td>glm-4.6v-flash</td>
+    <td>免费视觉模型 / <span class="green">supports_reasoning: true</span></td>
+  </tr>
+  <tr>
+    <td><b>Kimi (月之暗面)</b></td>
+    <td>https://api.moonshot.cn/v1</td>
+    <td>moonshot-v1-8k / v1-32k / v1-128k</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td><b>通义千问 Qwen</b></td>
+    <td>https://dashscope.aliyuncs.com/compatible-mode/v1<br>⚠️ 实际请从百炼控制台获取工作空间专属地址</td>
+    <td>qwen-plus / qwen-turbo / qwen-max<br>qwen-vl-flash / qwen3.7-plus</td>
+    <td>视觉模型用 <span class="green">enable_thinking</span> 而非 reasoning_effort</td>
+  </tr>
+  <tr>
+    <td><b>智谱 GLM</b></td>
+    <td>https://open.bigmodel.cn/api/paas/v4</td>
+    <td>glm-4 / glm-4-plus / glm-4-air</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td><b>百川</b></td>
+    <td>https://api.baichuan-ai.com/v1</td>
+    <td>Baichuan4 / Baichuan3-Turbo</td>
+    <td>—</td>
+  </tr>
+  <tr>
+    <td><b>OpenAI GPT-4o</b></td>
+    <td>https://api.openai.com/v1</td>
+    <td>gpt-4o / gpt-4o-mini</td>
+    <td>需要代理</td>
+  </tr>
+  <tr>
+    <td><b>Claude 3.5</b></td>
+    <td>https://api.anthropic.com/v1</td>
+    <td>claude-3-5-sonnet-20241022</td>
+    <td><span class="green">api_protocol: "anthropic"</span></td>
+  </tr>
+  <tr>
+    <td><b>豆包 (火山方舟)</b></td>
+    <td>https://ark.cn-beijing.volces.com/api/v3</td>
+    <td>doubao-seed-2-0-mini-260428</td>
+    <td>需开通模型</td>
+  </tr>
+</table>
+
+<p class="warn">
+⚠️ <b>Claude 不兼容 OpenAI 协议</b>,需要把 <code>api_protocol</code> 设为 <code>"anthropic"</code> (这个项目目前代码层只支持 openai_compat,可能需要我加代码适配)。其它模型都用 <code>openai_compat</code>。
+</p>
+
+<hr>
+
+<h2>特殊参数说明</h2>
+
+<table>
+  <tr><th>场景</th><th>字段</th><th>值</th></tr>
+  <tr><td>模型支持图片</td><td><code>is_multimodal</code></td><td><code>true</code></td></tr>
+  <tr><td>支持思考/推理</td><td><code>supports_reasoning</code></td><td><code>true</code></td></tr>
+  <tr><td>思考档位(DeepSeek/豆包/GLM)</td><td><code>reasoning_param_value</code></td><td><code>low</code>/<code>medium</code>/<code>high</code></td></tr>
+  <tr><td>思考开关(Qwen)</td><td><code>reasoning_param_name: "enable_thinking"</code><br><code>reasoning_param_value: "false"</code></td><td>Qwen 用 <code>enable_thinking=true/false</code> 而非 reasoning_effort。</td></tr>
+  <tr><td>长输出</td><td><code>max_tokens</code></td><td>4096 / 8192</td></tr>
+  <tr><td>稳定答案</td><td><code>temperature</code></td><td><code>0.0</code> (填空) / <code>0.1</code> (通用)</td></tr>
+  <tr><td>协议特殊</td><td><code>api_protocol</code></td><td><code>openai_compat</code> (默认) / <code>responses</code> / <code>anthropic</code></td></tr>
+</table>
+
+<hr>
+
+<h2>完整工作流</h2>
+
+<p>添加新模型的标准流程:</p>
+<ol>
+  <li>在平台开账号、拿 API key</li>
+  <li>在平台控制台开通/订阅你要的模型</li>
+  <li>(可选) 小金额充值 (一般 5-10 元够用很久)</li>
+  <li>用 curl 或平台 playground 测一下 API 通了</li>
+  <li>在 <code>custom_models.json</code> 加模型</li>
+  <li>在 <code>question_type_models</code> 加映射</li>
+  <li>重启服务</li>
+  <li>用 OCS 触发一道题,看 CSV 日志的"模型"列验证</li>
+</ol>
+
+<hr>
+
+<h2>遇到问题?</h2>
+
+<p>把 <span class="blue">错误信息 + 你想加的模型</span> 发给我,我帮你诊断。</p>
+
+<p>常见错误:</p>
+<ul>
+  <li><b>401 Unauthorized</b> → API key 错或没付费</li>
+  <li><b>404 Not Found</b> → base_url 或 model_name 写错</li>
+  <li><b>400 Bad Request</b> → 参数不兼容 (比如思考参数名不对)</li>
+  <li><b>404 InvalidEndpointOrModel.NotFound</b> → 平台没开通这个模型</li>
+</ul>
+
+<p>截图或粘贴错误信息,告诉我,我帮你看。</p>
+
+<hr>
+
+<p style="text-align:center; color:#999; margin-top:40px;">
+— OCS AI 答题助手 · 添加新模型教程 —
+</p>
+
+</body>
+</html>
