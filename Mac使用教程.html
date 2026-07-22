@@ -45,18 +45,6 @@
 
     <div class="step">
       <span class="step-num">1</span>
-      <h3>检查或安装 Python</h3>
-      <p>打开「终端」（Terminal），复制下面整段命令粘贴过去按回车：</p>
-      <pre>python3 --version</pre>
-      <p>如果显示 <code>Python 3.8+</code> 说明已有，跳过这步。<br>
-      如果报错「command not found」，说明没装 Python，运行下面命令安装：</p>
-      <pre>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-brew install python@3.11</pre>
-      <p>第一条命令装 Homebrew（Mac 的软件管理器），第二条命令装 Python。过程中会要你输入电脑密码，正常现象。</p>
-    </div>
-
-    <div class="step">
-      <span class="step-num">2</span>
       <h3>填 API Key</h3>
       <p>把下载的 zip 解压，找到 <code>keys.txt</code>，用文本编辑打开，把里面的占位符替换成你的真实 Key：</p>
       <pre>
@@ -68,25 +56,37 @@ GLM_API_KEY=你的智谱GLM密钥           ← 可选
     </div>
 
     <div class="step">
+      <span class="step-num">2</span>
+      <h3>双击一键启动（首次）</h3>
+      <p>打开 <code>scripts</code> 文件夹，找到 <code>一键启动.command</code>，<strong>双击</strong>它。</p>
+      <p>首次运行会自动：</p>
+      <ul>
+        <li>检查 Python（如果没有会自动提示你安装）</li>
+        <li>创建虚拟环境 + 装依赖（30-60 秒）</li>
+        <li>读取 keys.txt 配置 API Key</li>
+        <li>模型自检 → 启动服务</li>
+      </ul>
+      <p>之后每次使用，双击 <code>一键启动.command</code> 就会直接启动服务。</p>
+      <div class="note">💡 <strong>如果提示「 permission denied」</strong>，打开终端运行：<br><code>chmod +x scripts/一键启动.command</code><br>然后就能正常双击了。</div>
+      <div class="success">✅ 看到服务地址 http://127.0.0.1:5000 = 启动成功</div>
+    </div>
+
+    <div class="step">
       <span class="step-num">3</span>
-      <h3>进入项目目录 + 装依赖</h3>
-      <p>在终端里运行下面命令，<strong>一行一行复制粘贴执行</strong>：</p>
-      <pre>
-cd 桌面/OCS-AI-Answerer-一键包
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt</pre>
-      <div class="note">💡 <strong>第一行什么意思？</strong><code>cd</code> 就是"进入文件夹"的意思。<code>桌面/OCS-AI-Answerer-一键包</code> 是你解压后文件夹的路径。如果你解压到了别的地方（比如「下载」里），就把第一行改成 <code>cd 下载/OCS-AI-Answerer-一键包</code>。</div>
-      <p>等待安装完成（1-3 分钟）。</p>
+      <h3>浏览器部署</h3>
+      <p>这部分和 Windows 完全一样，看 <strong>使用教程.html</strong> 的第四、五阶段：</p>
+      <ol>
+        <li>装 Tampermonkey 扩展（Safari/Chrome 都行）</li>
+        <li>装 OCS 网课助手脚本</li>
+        <li>导入 ocs_config.json 题库配置</li>
+      </ol>
     </div>
 
     <div class="step">
       <span class="step-num">4</span>
-      <h3>启动服务</h3>
-      <p>还是在终端里，运行：</p>
-      <pre>python3 ocs_ai_answerer_advanced.py</pre>
-      <p>看到服务启动信息后，最小化终端就行，<strong>不要关掉</strong>（关了服务就停了）。</p>
-      <div class="success">✅ 终端显示服务运行中 = 后端就绪</div>
+      <h3>开始答题</h3>
+      <p>登录超星/学习通，点 OCS 悬浮窗开始答题即可。<strong>终端窗口不要关</strong>，关了服务就停了。</p>
+      <p>下次使用直接双击 <code>一键启动.command</code> 就行。</p>
     </div>
 
     <div class="step">
