@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>OCS AI Answerer 配置修改教程</title>
+<style>
+  body { font-family: -apple-system, "Microsoft YaHei", sans-serif; max-width: 920px; margin: 24px auto; padding: 0 20px; line-height: 1.7; color: #2c3e50; }
+  h1 { border-bottom: 3px solid #667eea; padding-bottom: 8px; }
+  h2 { margin-top: 32px; padding-left: 10px; border-left: 4px solid #667eea; }
+  h3 { color: #764ba2; }
+  .tip { background: #fff7e6; border-left: 4px solid #faad14; padding: 12px 16px; border-radius: 4px; margin: 16px 0; }
+  .warn { background: #fff1f0; border-left: 4px solid #f5222d; padding: 12px 16px; border-radius: 4px; margin: 16px 0; }
+  .note { background: #e6f7ff; border-left: 4px solid #1890ff; padding: 12px 16px; border-radius: 4px; margin: 16px 0; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 14px; border-radius: 6px; overflow-x: auto; font-size: 13px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 14px; color: #c7254e; }
+  pre code { background: none; padding: 0; color: #d4d4d4; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { border: 1px solid #d9d9d9; padding: 8px 12px; text-align: left; }
+  th { background: #fafafa; }
+  .green { color: #52c41a; font-weight: bold; }
+  .red { color: #f5222d; font-weight: bold; }
+  ol li, ul li { margin: 4px 0; }
+</style>
+</head>
+<body>
+
+<h1>📖 OCS AI Answerer 配置修改完整教程</h1>
+
+<p class="note">
+<strong>这个教程适用于：</strong>你想改模型的思考程度（low/medium/high）、切换 Flash/Pro、换 API key、改 temperature 等任何配置。
+</p>
+
+<p>
+所有配置都存在 <code>OCS-AI-Answerer-一键包\custom_models.json</code> 这一个文件里（即你解压后的项目根目录），<strong>改完必须重启服务</strong>才生效。
+</p>
+
+<hr>
+
+<h2>第 1 步：找到并打开文件</h2>
+
+<ol>
+  <li>用<strong>记事本 / VSCode / Notepad++</strong> 打开：
+    <pre><code>OCS-AI-Answerer-一键包\custom_models.json</code></pre>
+  </li>
+  <li>推荐用 <strong>VSCode</strong>，有 JSON 高亮和格式校验，更安全。</li>
+  <li>文件 <strong>不要用 Word/WPS 打开</strong>，会破坏编码。</li>
+</ol>
+
+<p class="warn">
+<strong>⚠️ 改之前先备份！</strong>把文件复制一份到 <code>custom_models.json.bak</code>，改坏了能恢复。
+</p>
+
+<hr>
+
+<h2>第 2 步：认识文件结构</h2>
+
+<p>文件有两块：<code>"models"</code>（模型定义）和 <code>"question_type_models"</code>（题型映射）。</p>
+
+<h3>2.1 models（模型定义）</h3>
+
+<p>每条模型都长这样：</p>
+
+<pre><code>"preset_deepseek_v4_flash": {
+  "name": "DeepSeek V4 Flash",
+  "provider": "openai",
+  "api_key": "sk-你的真实key",
+  "base_url": "https://api.deepseek.com",
+  "model_name": "deepseek-v4-flash",
+  "is_multimodal": false,
+  "max_tokens": 500,
+  "temperature": 0.1,
+  "top_p": 0.95,
+  "supports_reasoning": true,
+  "reasoning_param_name": "reasoning_effort",
+  "reasoning_param_value": "medium",       ← 🔥 改这里调思考程度
+  "api_protocol": "openai_compat",
+  "enabled": true
+}</code></pre>
+
+<h3>2.2 当前 9 个模型 ID（记住这些名字）</h3>
+
+<table>
+  <tr><th>模型 ID</th><th>显示名</th><th>用途</th></tr>
+  <tr><td><code>preset_deepseek_v4_flash</code></td><td>DeepSeek V4 Flash</td><td>文字题（快、便宜）</td></tr>
+  <tr><td><code>preset_deepseek_v4_pro</code></td><td>DeepSeek V4 Pro</td><td>文字题（准、慢）</td></tr>
+  <tr><td><code>preset_glm_4v_flash</code></td><td>GLM-4.6V-Flash</td><td>图片题（免费视觉，首选）<br>注意：免费但可能限流，限流后自动降级</td></tr>
+  <tr><td><code>preset_doubao_mini</code></td><td>豆包 Mini 2.0</td><td>图片题文字链（付费，试用额度非永久免费）</td></tr>
+  <tr><td><code>preset_doubao_turbo</code></td><td>豆包 Turbo 2.1</td><td>图片题（付费）</td></tr>
+  <tr><td><code>preset_doubao_pro</code></td><td>豆包 Pro 2.0</td><td>图片题（付费）</td></tr>
+  <tr><td><code>preset_doubao_2_1_pro</code></td><td>豆包 Pro 2.1</td><td>图片题复杂链（付费，最终兜底）</td></tr>
+  <tr><td><code>preset_qwen_vl_flash</code></td><td>Qwen VL Flash</td><td>图片题（付费轻量级视觉）</td></tr>
+  <tr><td><code>preset_qwen_3_7_plus</code></td><td>Qwen3.7-Plus</td><td>图片题复杂链（付费强力视觉）</td></tr>
+</table>
+
+<h3>2.3 question_type_models（题型映射）</h3>
+
+<pre><code>"question_type_models": {
+  "single":     { "models": ["preset_deepseek_v4_flash", "preset_deepseek_v4_pro"] },
+  "multiple":   { "models": ["preset_deepseek_v4_pro", "preset_deepseek_v4_flash"] },
+  "judgement":  { "models": ["preset_deepseek_v4_flash", "preset_deepseek_v4_pro"] },
+  "completion": { "models": ["preset_deepseek_v4_flash", "preset_deepseek_v4_pro"] },
+  "image":      { "models": ["preset_glm_4v_flash", "preset_doubao_mini", "preset_qwen_vl_flash", "preset_qwen_3_7_plus", "preset_doubao_2_1_pro"] }
+}</code></pre>
+
+<ul>
+  <li><code>single</code> = 单选 / <code>multiple</code> = 多选 / <code>judgement</code> = 判断 / <code>completion</code> = 填空</li>
+  <li><code>image</code> = 图片题云端降级链：本地 OCR 失败后，按 GLM → 豆包 Mini → Qwen VL Flash → Qwen3.7-Plus → 豆包 Pro 2.1 顺序调用</li>
+  <li>每个题型 <code>"models"</code> 数组里 <strong>第一个是主用，后面的都是 fallback</strong>（主用失败自动降级）</li>
+  <li>本地 OCR 始终最先跑，达标则完全不调用云端视觉模型，零成本</li>
+</ul>
+
+<hr>
+
+<h2>第 3 步：常见修改场景（复制即用）</h2>
+
+<h3>场景 1：把某个模型的思考程度调成 <span class="green">high</span>（深度思考）</h3>
+
+<p>比如想让 <code>preset_deepseek_v4_flash</code> 用 <code>high</code> 思考：</p>
+
+<ol>
+  <li>搜 <code>preset_deepseek_v4_flash</code></li>
+  <li>找 <code>"reasoning_param_value": "medium"</code></li>
+  <li>改成 <code>"reasoning_param_value": "high"</code></li>
+</ol>
+
+<pre><code>"reasoning_param_name": "reasoning_effort",
+"reasoning_param_value": "high"   ← 改这里</code></pre>
+
+<p><strong>三档说明：</strong></p>
+<table>
+  <tr><th>档位</th><th>耗时</th><th>适用</th></tr>
+  <tr><td><code>low</code></td><td>3-5 秒</td><td>选择/判断等简单题</td></tr>
+  <tr><td><code>medium</code></td><td>5-15 秒</td><td>填空/一般计算（默认）</td></tr>
+  <tr><td><code>high</code></td><td>20-60 秒</td><td>证明题/复杂推导/求导积分</td></tr>
+</table>
+
+<hr>
+
+<h3>场景 2：把单选/填空从 Flash 切到 <span class="green">Pro</span></h3>
+
+<p>想让"单选题"和"填空题"优先用 Pro（更准但慢）：</p>
+
+<ol>
+  <li>搜 <code>"question_type_models"</code></li>
+  <li>把 <code>"single"</code> 和 <code>"completion"</code> 里的顺序调换</li>
+</ol>
+
+<pre><code>"single": {
+  "models": [
+    "preset_deepseek_v4_pro",      ← 主用 Pro（准确）
+    "preset_deepseek_v4_flash"     ← 失败降级到 Flash
+  ]
+},
+"completion": {
+  "models": [
+    "preset_deepseek_v4_pro",      ← 主用 Pro
+    "preset_deepseek_v4_flash"     ← 失败降级
+  ]
+}</code></pre>
+
+<p class="tip">
+<strong>💡 想让所有题都用 Pro？</strong> 把每个题型的 <code>"models"</code> 数组第一个都改成 <code>preset_deepseek_v4_pro</code>。
+</p>
+
+<hr>
+
+<h3>场景 3：调整输出长度（<code>max_tokens</code>）</h3>
+
+<p>当前 <code>preset_deepseek_v4_flash</code> 的 <code>max_tokens</code> 只有 <code>500</code>——<strong>答问答题时可能不够</strong>（返回截断或空）。改成 4096：</p>
+
+<pre><code>"preset_deepseek_v4_flash": {
+  ...
+  "max_tokens": 4096,    ← 改这里
+  ...
+}</code></pre>
+
+<p>问答题（【其它】类型：求函数单调区间、证明题等）<strong>建议至少 4096</strong>。</p>
+
+<hr>
+
+<h3>场景 3.5：调整 temperature（AI 随机性）</h3>
+
+<table>
+  <tr><th>值</th><th>效果</th><th>适用</th></tr>
+  <tr><td><code>0.0</code></td><td>每次答案一样</td><td>填空/判断（推荐）</td></tr>
+  <tr><td><code>0.1</code>（默认）</td><td>几乎一样，偶尔不同</td><td>通用</td></tr>
+  <tr><td><code>0.7</code></td><td>比较发散</td><td>简答题/创作</td></tr>
+  <tr><td><code>1.0+</code></td><td>很发散</td><td>一般不用</td></tr>
+</table>
+
+<pre><code>"temperature": 0.0    ← 填空题想稳定就改 0</code></pre>
+
+<hr>
+
+<h3>场景 4：换 API Key</h3>
+
+<p>比如 DS 余额不足要换新 key：</p>
+
+<pre><code>"preset_deepseek_v4_flash": {
+  "api_key": "sk-你的新key",   ← 改这里
+  ...
+}</code></pre>
+
+<hr>
+
+<h3>场景 5：换底层模型（API 升级/换平台）</h3>
+
+<p>比如想从 DeepSeek V4 切到 V3.5，或者换到 GPT：</p>
+
+<pre><code>"preset_deepseek_v4_flash": {
+  "name": "DeepSeek V3.5",     ← 显示名（随便起）
+  "base_url": "https://api.deepseek.com",   ← API 地址
+  "model_name": "deepseek-v3.5-flash",      ← 实际模型 ID
+  "api_key": "sk-xxx",
+  ...
+}</code></pre>
+
+<hr>
+
+<h3>场景 6：临时禁用某个模型</h3>
+
+<p>比如豆包平台今天抽风，先禁用豆包只用 DS：</p>
+
+<pre><code>"preset_doubao_mini": {
+  "enabled": false,   ← 改成 false
+  ...
+}</code></pre>
+
+<p>或者从题型映射里把豆包删了：</p>
+
+<pre><code>"image": {
+  "models": [
+    "preset_glm_4v_flash",
+    "preset_doubao_turbo",        ← 主用还在的豆包
+    "preset_qwen_vl_flash"        ← 兜底
+    // 删掉 preset_doubao_mini
+  ]
+}</code></pre>
+
+<hr>
+
+<h2>第 4 步：保存 + 重启服务</h2>
+
+<p class="warn">
+<strong>⚠️ 改完必须重启！</strong>服务在启动时读这个文件，运行中改 <span class="red">不会生效</span>。
+</p>
+
+<h3>重启步骤：</h3>
+
+<ol>
+  <li><strong>关掉旧服务窗口</strong>（点 X 关闭那个黑色 cmd 窗口）</li>
+  <li><strong>打开新窗口</strong>，执行（把路径换成你的项目实际位置）：
+    <pre><code>cd /d C:\你的路径\OCS-AI-Answerer-一键包
+.venv\Scripts\python.exe ocs_ai_answerer_advanced.py</code></pre>
+  </li>
+  <li>看到 <code>✅ 服务启动成功！</code> 就 OK 了</li>
+</ol>
+
+<h3>验证改成功：</h3>
+
+<ol>
+  <li>浏览器打开 <code>http://127.0.0.1:5000/api/health</code></li>
+  <li>看到 <code>"enabled_model_count": 7</code> 说明服务正常</li>
+  <li>用 OCS 触发一道题，看 CSV 日志（<code>ocs_answers_log.csv</code>）的"模型"列</li>
+</ol>
+
+<hr>
+
+<h2>第 5 步：常见错误和排查</h2>
+
+<h3>❌ 改完服务启动报错 <code>JSONDecodeError</code></h3>
+
+<p><strong>原因：</strong>JSON 格式坏了（漏了逗号、引号不对等）</p>
+<p><strong>修复：</strong></p>
+<ol>
+  <li>VSCode 会标红，按提示补</li>
+  <li>实在不行就把 <code>custom_models.json.bak</code> 备份还原</li>
+  <li>在线工具 <code>https://jsonlint.com</code> 校验格式</li>
+</ol>
+
+<h3>❌ 改完没生效</h3>
+
+<p><strong>原因：</strong>忘了重启服务</p>
+<p><strong>修复：</strong>按第 4 步重启</p>
+
+<h3>❌ 改完 AI 答空 / 报错</h3>
+
+<p><strong>原因 1：</strong><code>api_key</code> 填错</p>
+<p><strong>原因 2：</strong><code>model_name</code> 写错（注意空格、大小写）</p>
+<p><strong>原因 3：</strong><code>base_url</code> 写错（要带 <code>https://</code>，不要带尾部 <code>/</code>）</p>
+
+<p>排查方法：看后端日志里的"HTTP Request"行，看具体 API 返回什么错。</p>
+
+<hr>
+
+<h2>附录：完整 JSON 字段速查</h2>
+
+<table>
+  <tr><th>字段</th><th>类型</th><th>作用</th><th>常用值</th></tr>
+  <tr><td><code>name</code></td><td>字符串</td><td>面板显示名</td><td>任意</td></tr>
+  <tr><td><code>provider</code></td><td>字符串</td><td>识别用</td><td><code>openai</code> / <code>anthropic</code> 等</td></tr>
+  <tr><td><code>api_key</code></td><td>字符串</td><td>API 密钥</td><td>你的 key</td></tr>
+  <tr><td><code>base_url</code></td><td>字符串</td><td>API 端点</td><td><code>https://api.deepseek.com</code></td></tr>
+  <tr><td><code>model_name</code></td><td>字符串</td><td>实际模型 ID</td><td><code>deepseek-v4-flash</code></td></tr>
+  <tr><td><code>is_multimodal</code></td><td>布尔</td><td>是否支持图片</td><td><code>true</code>/<code>false</code></td></tr>
+  <tr><td><code>max_tokens</code></td><td>整数</td><td>最大输出长度</td><td>500 / 4096 / 8192</td></tr>
+  <tr><td><code>temperature</code></td><td>浮点</td><td>随机性 0-2</td><td>0.1 (答题) / 0.7 (创作)</td></tr>
+  <tr><td><code>top_p</code></td><td>浮点</td><td>采样阈值 0-1</td><td>0.95</td></tr>
+  <tr><td><code>supports_reasoning</code></td><td>布尔</td><td>是否支持思考</td><td><code>true</code>/<code>false</code></td></tr>
+  <tr><td><code>reasoning_param_name</code></td><td>字符串</td><td>API 思考参数名</td><td><code>reasoning_effort</code> / <code>enable_thinking</code></td></tr>
+  <tr><td><code>reasoning_param_value</code></td><td>字符串</td><td>思考档位</td><td><code>low</code>/<code>medium</code>/<code>high</code> 或 <code>true</code>/<code>false</code></td></tr>
+  <tr><td><code>api_protocol</code></td><td>字符串</td><td>API 协议</td><td><code>openai_compat</code> / <code>responses</code></td></tr>
+  <tr><td><code>enabled</code></td><td>布尔</td><td>是否启用</td><td><code>true</code>/<code>false</code></td></tr>
+</table>
+
+<hr>
+
+<p class="note">
+<strong>📌 保存这个教程</strong>：以后改配置都按这个流程走。<br>
+<strong>📌 改坏了</strong>：用 <code>custom_models.json.bak</code> 还原。<br>
+<strong>📌 想做 GUI</strong>：告诉我，我做一个不用构建的 HTML 仪表盘。
+</p>
+
+<p style="text-align: center; color: #999; margin-top: 40px;">— OCS AI Answerer 配置教程 v1.0 —</p>
+
+</body>
+</html>
