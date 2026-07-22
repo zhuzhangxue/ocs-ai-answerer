@@ -216,7 +216,8 @@
 
     <div class="info" style="background:#fff7e6; border-left:4px solid #fa8c16; padding:16px 20px; margin-bottom:20px; border-radius:8px; font-size:15px;">
       <strong>📌 新手快速指引</strong><br>
-      • 启动文件在 <code>scripts/一键启动.bat</code>（双击它就能启动服务）<br>
+      • 首次配置用 <code>scripts/一键启动.bat</code>（装依赖+填 key，只需运行一次）<br>
+      • 日常使用用 <code>scripts/启动守护.vbs</code>（双击后全自动，打开超星自动启停）<br>
       • 教程在 <code>docs/</code> 文件夹里（有3个HTML教程，双击就能看）<br>
       • 配 Key 只需要改 <code>keys.txt</code>（DeepSeek + 豆包 必配，GLM 和 Qwen 可选）<br>
       • 遇到问题先看本页底部的 <strong>FAQ</strong>
@@ -279,9 +280,10 @@ OCS-AI-Answerer-一键包/
 └── scripts/                           ⚡ 启动脚本文件夹
     ├── 一键启动.bat                  ⭐ 首次配置用（填key+装依赖+启动）
     ├── 启动服务.vbs                  🚀 手动启动（后台静默，无黑窗口）
-    ├── 停止服务.bat                  ⏹ 停止服务
-    ├── 启动守护.vbs                  🔄 自动模式（推荐！检测到浏览器自动启停）
-    └── 守护程序.vbs                  ⚙️ （被启动守护调用，不要直接运行）
+    ├── 停止服务.bat                  ⏹ 停止服务 + 守护程序
+    ├── 启动守护.vbs                  🔄 自动模式（推荐！检测到超星自动启停）
+    ├── 守护程序.vbs                  ⚙️ 被启动守护调用，不要直接运行
+    └── check_study.py                🔍 检测超星/学习通页面的脚本（被守护程序调用）
 </pre>
         <div class="info">💡 <strong>记住两个位置：</strong><br>
         • 启动文件在 <code>scripts/一键启动.bat</code>（稍后要双击它）<br>
@@ -437,11 +439,12 @@ DASHSCOPE_API_KEY=你的阿里百炼DashScope密钥
 
       <div class="step">
         <span class="step-num">2</span>
-        <h3>双击启动一键启动.bat <span class="check">启动</span></h3>
+        <h3>首次配置：双击一键启动.bat <span class="check">仅首次需要</span></h3>
         <p>打开 <code>scripts</code> 文件夹，找到 <code>一键启动.bat</code>，<strong>双击</strong>它。</p>
-        <p>（如果找不到，回到项目根目录，进入 <code>scripts/</code> 文件夹就能看到）</p>
-        <p>会弹出一个黑色 cmd 窗口,显示 6 步进度。</p>
-        <div class="note">💡 <strong>不要关闭这个黑窗口</strong>(服务启动后它会一直开着,最小化到任务栏就行)</div>
+        <p>这个脚本会帮你完成：安装 Python 依赖 → 读取 keys.txt 的 Key → 模型自检 → 启动服务。</p>
+        <p>（以后日常使用不需要再运行它，改用 <code>启动守护.vbs</code> 就行）</p>
+        <p>会弹出一个黑色 cmd 窗口，显示以下步骤进度。</p>
+        <div class="note">💡 <strong>不要关闭这个黑窗口</strong>（首次配置完看到服务启动后，下次直接用 VBS 启动）</div>
       </div>
 
       <div class="step">
@@ -453,30 +456,27 @@ DASHSCOPE_API_KEY=你的阿里百炼DashScope密钥
   🤖  OCS AI 智能答题助手 - 一键启动
 ════════════════════════════════════════════
 
-[步骤 1/6] 检查 Python 环境
-✅ Python 3.13.9 已安装
+[1/6] 检查 Python 环境
+✅ Python 3.13.x 已安装
 
-[步骤 2/6] 准备虚拟环境
+[2/6] 准备虚拟环境
 ✅ 虚拟环境已存在,跳过
 
-[步骤 3/6] 安装 Python 依赖包
-📦 升级 pip...
+[3/6] 安装 Python 依赖包
 📦 安装依赖 (Flask, openai, httpx 等)...
 ✅ 依赖安装完成
 
-[步骤 4/6] 配置 API Key
+[4/6] 配置 API Key
 📝 从 keys.txt 读取并写入 .env...
 ✅ API Key 已从 keys.txt 写入 .env
 
-[步骤 5/6] 启动 AI 答题服务
-🚀 正在后台启动服务...
-⏳ 等待服务就绪...
-✅ 服务已就绪
+[5/6] 模型自检
+✅ 9/9 个模型就绪
 
-[步骤 6/6] 创建桌面快捷方式(可选)
-是否创建桌面快捷方式? (Y/N)
+[6/6] 启动服务
+🚀 服务运行中: http://127.0.0.1:5000
 </pre>
-        <p>在「是否创建桌面快捷方式」提示时,按 <code>Y</code> + 回车(推荐)。</p>
+        <p>看到 "模型自检 9/9 个模型就绪"，说明配置正确。</p>
       </div>
 
       <div class="step">
@@ -630,12 +630,12 @@ DASHSCOPE_API_KEY=你的阿里百炼DashScope密钥
         <li>下载 + 解压 zip</li>
         <li>注册 DeepSeek 和火山方舟,获取 2 个 Key</li>
         <li>填入 keys.txt</li>
-        <li>双击 bat 启动</li>
+        <li>双击 <code>scripts/一键启动.bat</code>（仅首次）</li>
         <li>装 Tampermonkey 扩展(2 个点击)</li>
         <li>装 OCS 脚本(1 个点击)</li>
         <li>导入 ocs_config.json(粘贴 + 保存)</li>
       </ul>
-      <p style="margin-top: 20px;"><strong>后续使用：双击桌面「OCS答题服务」图标即可</strong>(15-20 秒就绪)</p>
+      <p style="margin-top: 20px;"><strong>后续使用：双击 <code>scripts/启动守护.vbs</code> 即可</strong>，后台自动运行，打开超星时自动答题，关闭页面自动停止。</p>
     </div>
 
     <div class="divider"></div>
@@ -718,6 +718,15 @@ DASHSCOPE_API_KEY=你的阿里百炼DashScope密钥
       <div class="faq-item">
         <div class="faq-q">Q11: 想换个模型(如 Flash 改 Pro)？</div>
         <div class="faq-a">打开 <code>docs/配置教程.html</code> 里有详细步骤。或者告诉我「单选切换到 Pro」,我帮你改。</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q">Q12: 守护程序怎么用？每次开机都要重新双击吗？</div>
+        <div class="faq-a">
+          <p>双击一次 <code>启动守护.vbs</code> 后它就在后台持续运行了（每30秒检测一次，几乎零CPU）。</p>
+          <p>想让它开机自动运行：把 <code>启动守护.vbs</code> 的快捷方式放到 <code>启动</code> 文件夹即可（按 <code>Win+R</code> → 输入 <code>shell:startup</code> → 把快捷方式粘贴进去）。</p>
+          <p>想停止守护：双击 <code>停止服务.bat</code>，它会同时停掉答题服务和守护程序。</p>
+        </div>
       </div>
     </div>
 
